@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="vi" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Phải sử dụng font hiện đại, clean để đáp ứng yêu cầu -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Roboto:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+    <title>Goal Flash - Thể Thao Đỉnh Cao</title>
+  </head>
+  <body>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <!-- NAVBAR STICKY GLASS -->
+    <header class="navbar">
+      <div class="nav-container">
+        <a href="#" class="brand">
+          <div class="logo-ball">
+            <div class="center-line"></div>
+            <div class="ball-dot"></div>
+          </div>
+          <div class="logo-text">
+            <span class="arena">ARENA</span>
+            <span class="goal">GOAL</span>
+          </div>
+        </a>
+
+        <div class="nav-links" id="mainNavLinks">
+          <a href="#" class="nav-item active" data-tab="live"
+            ><i class="fas fa-fire"></i> Live</a
+          >
+          <a href="#" class="nav-item" data-tab="schedule"
+            ><i class="fas fa-calendar-alt"></i> Lịch đấu</a
+          >
+          <a href="#" class="nav-item" data-tab="standings"
+            ><i class="fas fa-trophy"></i> BXH</a
+          >
+        </div>
+
+        <div class="nav-actions">
+          <button
+            class="icon-toggle mobile-menu-btn"
+            id="menuToggleBtn"
+            aria-label="Toggle Menu"
+          >
+            <i class="fas fa-bars"></i>
+          </button>
+
+          <div class="nav-search">
+            <i class="fas fa-search"></i>
+            <input
+              type="text"
+              id="globalSearch"
+              placeholder="Tìm đội bóng..."
+            />
+          </div>
+          <button
+            class="icon-toggle"
+            id="themeBtn"
+            aria-label="Toggle Dark/Light Mode"
+          >
+            <i class="fas fa-moon"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+    <div class="app-container main-layout">
+      <!-- SIDEBAR CHUYÊN NGHIỆP TRÁI (DESKTOP) -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-block sticky-top">
+          <h3 class="sb-title">CHỌN GIẢI ĐẤU</h3>
+          <ul class="sb-menu" id="leagueFilters">
+            <!-- Javascript Data -->
+            <li class="sk-loader inline-sk mb-2"></li>
+            <li class="sk-loader inline-sk mb-2"></li>
+            <li class="sk-loader inline-sk w-75"></li>
+          </ul>
+
+          <h3 class="sb-title mt-4">📊 BẢNG XẾP HẠNG</h3>
+          <div class="standings-box mb-3" id="standingsBox">
+            <div class="sk-loader mb-2"></div>
+            <div class="sk-loader mb-2"></div>
+            <div class="sk-loader w-50"></div>
+          </div>
+
+          <h3 class="sb-title mt-4">⭐ CỦA TÔI</h3>
+          <ul class="sb-menu" id="myFavs">
+            <li class="text-sm text-gray">Chọn ngôi sao để lưu</li>
+          </ul>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT (GIỮA) -->
+      <main class="main-content">
+        <!-- LIVE/HERO CAROUSEL -->
+        <section class="live-section">
+          <div class="section-head mb-3">
+            <h2><span class="live-dot"></span> Sắp diễn ra</h2>
+            <a href="#" class="view-all"
+              >Xem tất cả <i class="fas fa-angle-right"></i
+            ></a>
+          </div>
+
+          <div class="hero-carousel" id="heroCarousel">
+            <!-- Skeletons... -->
+            <!-- Sẽ được fill bằng HTML sau khi có API -->
+          </div>
+        </section>
+
+        <!-- MATCHES LIST HIỆN ĐẠI TỪNG VÒNG ĐẤU -->
+        <section class="matches-list mt-4">
+          <!-- Khu vực Scroll Tab Giải Đấu Mobile -->
+          <div class="mobile-league-tabs" id="mobileTabs">
+            <!-- JS Data -->
+          </div>
+
+          <div id="matchesWrapper">
+            <!-- JS sẽ render Data phân loại theo Vòng & Ngày ở đây -->
+            <!-- Skeleton Loader khi API chưa load -->
+            <div class="league-heading-sk sk-loader mt-4 mb-2"></div>
+            <div class="match-row-sk sk-loader mb-2"></div>
+            <div class="match-row-sk sk-loader mb-2"></div>
+          </div>
+        </section>
+
+        <!-- BẢNG XẾP HẠNG CHI TIẾT (MAIN CONTENT) -->
+        <section
+          class="standings-section mt-4"
+          id="standingsSection"
+          style="display: none"
+        >
+          <div class="section-head mb-3">
+            <h2>
+              <i class="fas fa-trophy text-warning"></i> Bảng xếp hạng chi tiết
+              -
+              <span class="text-primary" id="standingsLeagueName"
+                >Ngoại hạng Anh</span
+              >
+            </h2>
+          </div>
+          <div
+            class="glass-card"
+            style="padding: 0; overflow: hidden; border-radius: 12px"
+          >
+            <div style="overflow-x: auto">
+              <table
+                class="table-standings"
+                style="
+                  width: 100%;
+                  min-width: 600px;
+                  border-collapse: collapse;
+                  text-align: center;
+                  font-size: 14px;
+                "
+              >
+                <thead
+                  style="
+                    background: rgba(255, 255, 255, 0.05);
+                    height: 40px;
+                    border-bottom: 1px solid var(--border-color);
+                    color: var(--text-gray);
+                    font-size: 13px;
+                  "
+                >
+                  <tr>
+                    <th style="width: 40px">TT</th>
+                    <th style="text-align: left; padding-left: 10px">Đội</th>
+                    <th>Kết quả<br />mới nhất</th>
+                    <th>Trận</th>
+                    <th>Thắng</th>
+                    <th>Hòa</th>
+                    <th>Thua</th>
+                    <th class="hide-mobile">Bàn<br />thắng</th>
+                    <th class="hide-mobile">Bàn<br />thua</th>
+                    <th>Hiệu<br />số</th>
+                    <th style="font-weight: 700; color: var(--text-primary)">
+                      Điểm
+                    </th>
+                    <th class="hide-mobile">Kết quả 5 trận gần nhất</th>
+                  </tr>
+                </thead>
+                <tbody id="fullStandingsBody">
+                  <!-- JS Render -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="toastContainer" class="toast-wrapper"></div>
+
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>
