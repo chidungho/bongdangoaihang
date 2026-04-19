@@ -24,8 +24,10 @@ const LEAGUE_SCHEDULES = [
 
 // Khởi tạo cache storage
 let globalMatchesCache = null;
-let lastFetchTime = null;
-const CACHE_TTL = Number.parseInt(process.env.CACHE_TTL_MS || '60000', 10); // default 60s
+let lastScrapeTime = null;
+let isScraping = false;
+const SCRAPE_INTERVAL_MS = Number.parseInt(process.env.SCRAPE_INTERVAL_MS || '86400000', 10); // default 24h
+const SCRAPE_ON_STARTUP = String(process.env.SCRAPE_ON_STARTUP || 'true').toLowerCase() !== 'false';
 
 const PUBLIC_DIR = __dirname;
 const MOCK_MATCHES_PATH = path.join(PUBLIC_DIR, 'public_api_data.json');
@@ -38,6 +40,15 @@ function readMockMatches() {
     } catch (e) {
         console.warn('Không đọc được public_api_data.json:', e.message);
         return [];
+    }
+}
+
+function writeMatchesCache(matches) {
+    try {
+        const payload = JSON.stringify(matches, null, 2);
+        fs.writeFileSync(MOCK_MATCHES_PATH, payload, 'utf-8');
+    } catch (e) {
+        console.warn('Không ghi được public_api_data.json:', e.message);
     }
 }
 
@@ -151,29 +162,51 @@ async function scrape24hSchedule() {
     return matches;
 }
 
-// Route API cung cấp chuỗi JSON format như yêu cầu
-app.get('/api/matches', async (req, res) => {
-    try {
-        const timeNow = Date.now();
-        // Caching: Kiểm tra cache và return ngay lập tức
-        if (globalMatchesCache && lastFetchTime && (timeNow - lastFetchTime) < CACHE_TTL) {
-            console.log('API Trả về kết quả từ Cache mem.');
-            return res.json(globalMatchesCache); 
-        }
-
-        // Fetch web scraping
-        const freshMatches = await scrape24hSchedule();
-        
-        // Cập nhật Cache
-        globalMatchesCache = freshMatches;
-        lastFetchTime = timeNow;
-
-        return res.json(globalMatchesCache); 
-    } catch (err) {
-        console.error("Scrape Error Details:", err.message);
-        // Trả HTTP Error Status code + message JSON
-        return res.status(500).json({ error: "Không lấy được dữ liệu từ 24h lúc này" });
+async function refreshMatchesCache(reason = 'scheduled') {
+    if (isScraping) {
+        console.log(`[SCRAPER] Bỏ qua job "${reason}" vì đang có phiên cào khác.`);
+        return;
     }
+
+    isScraping = true;
+    console.log(`[SCRAPER] Bắt đầu job "${reason}"...`);
+    try {
+        const freshMatches = await scrape24hSchedule();
+        if (freshMatches.length > 0) {
+            globalMatchesCache = freshMatches;
+            lastScrapeTime = Date.now();
+            writeMatchesCache(freshMatches);
+            console.log(`[SCRAPER] Hoàn tất job "${reason}". Tổng trận: ${freshMatches.length}`);
+            return;
+        }
+        console.warn(`[SCRAPER] Job "${reason}" không có dữ liệu mới, giữ cache cũ.`);
+    } catch (err) {
+        console.error(`[SCRAPER] Job "${reason}" lỗi:`, err.message);
+    } finally {
+        isScraping = false;
+    }
+}
+
+function setupScrapeScheduler() {
+    if (SCRAPE_ON_STARTUP) {
+        refreshMatchesCache('startup');
+    }
+    setInterval(() => {
+        refreshMatchesCache('scheduled-interval');
+    }, SCRAPE_INTERVAL_MS);
+}
+
+// Route API chỉ trả dữ liệu đã cache/scrape theo lịch
+app.get('/api/matches', (req, res) => {
+    if (!globalMatchesCache) {
+        globalMatchesCache = readMockMatches();
+    }
+
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    if (lastScrapeTime) {
+        res.setHeader('X-Last-Scrape-Time', new Date(lastScrapeTime).toISOString());
+    }
+    return res.send(JSON.stringify(globalMatchesCache || []));
 });
 
 // Standings currently served from bundled JSON (mock/source-of-truth for FE)
@@ -192,9 +225,14 @@ app.get('/api/standings', (req, res) => {
 // Chạy Express API Server (Cổng 3000)
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
+    globalMatchesCache = readMockMatches();
+    setupScrapeScheduler();
+
     console.log(`=====================================`);
     console.log(`[API START] Backend Express.js Server`);
     console.log(`Lắng nghe tại http://localhost:${PORT}`);
     console.log(`Test endpoint JSON: http://localhost:${PORT}/api/matches`);
+    console.log(`Scrape interval: ${SCRAPE_INTERVAL_MS}ms`);
+    console.log(`Scrape on startup: ${SCRAPE_ON_STARTUP ? 'ON' : 'OFF'}`);
     console.log(`=====================================`);
 });
