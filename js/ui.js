@@ -267,7 +267,7 @@ export function renderFullStandings({ state }) {
         <tr>
           <td>${row.rank}</td>
           <td class="text-left">
-            <div class="d-flex align-items-center" style="gap:10px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
               <img src="${row.logo}" alt="${row.team}" style="width:22px; height:22px;" onerror="this.style.display='none'">
               <span>${row.team}</span>
             </div>
