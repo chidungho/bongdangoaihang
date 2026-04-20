@@ -1,0 +1,11 @@
+services:
+  goalflash:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: goalflash-app
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    restart: unless-stopped
