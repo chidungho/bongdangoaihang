@@ -20,6 +20,7 @@ const state = {
   standings: {},
   selectedLeague: "ALL",
   searchQuery: "",
+  dateFilter: "all",
   favorites: loadFavorites(),
   theme: loadTheme(),
   isLoading: true,
@@ -36,6 +37,12 @@ const elements = {
   toastContainer: document.getElementById("toastContainer"),
   myFavs: document.getElementById("myFavs"),
   standingsBox: document.getElementById("standingsBox"),
+  dateFilter: document.getElementById("dateFilter"),
+  dateChips: document.getElementById("dateChips"),
+  dateInput: document.getElementById("dateInput"),
+  dateClearBtn: document.getElementById("dateClearBtn"),
+  heroPrevBtn: document.getElementById("heroPrevBtn"),
+  heroNextBtn: document.getElementById("heroNextBtn"),
 };
 
 const LEAGUE_ICONS = {
@@ -85,25 +92,147 @@ const DISPLAY_LEAGUES = [
   { name: "Ligue 1", search: "Ligue 1", iconUrl: LEAGUE_ICONS["Ligue 1"] },
 ];
 
+const LEAGUE_ROUTE_MAP = {
+  all: "ALL",
+  "lich-hom-nay": "ALL",
+  "fa-cup": "FA Cup",
+  "ngoai-hang-anh": "Ngoại hạng Anh",
+  "cup-c1": "CUP C1",
+  "la-liga": "La Liga",
+  "v-league-1": "V.League 1",
+  "serie-a": "Serie A",
+  "europa-league": "Europa",
+  bundesliga: "Bundesliga",
+  "ligue-1": "Ligue 1",
+};
+
+const LEAGUE_TO_ROUTE_MAP = {
+  ALL: "lich-hom-nay",
+  "Lịch thi đấu hôm nay": "lich-hom-nay",
+  "FA Cup": "fa-cup",
+  "Ngoại hạng Anh": "ngoai-hang-anh",
+  "CUP C1": "cup-c1",
+  "La Liga": "la-liga",
+  "V.League 1": "v-league-1",
+  "Serie A": "serie-a",
+  Europa: "europa-league",
+  Bundesliga: "bundesliga",
+  "Ligue 1": "ligue-1",
+};
+
 const ctx = { state, elements, DISPLAY_LEAGUES, LEAGUE_ICONS };
 
-function initTheme() {
-  document.documentElement.setAttribute("data-theme", state.theme);
-  elements.themeBtn.innerHTML =
-    state.theme === "light"
-      ? '<i class="fas fa-sun" style="color: #ff9800;"></i>'
-      : '<i class="fas fa-moon"></i>';
+function parseAppPath(pathname) {
+  const trimmed = String(pathname || "/")
+    .toLowerCase()
+    .replace(/^\/+|\/+$/g, "");
 
-  elements.themeBtn?.addEventListener("click", () => {
-    document.body.classList.add("no-transition");
-    state.theme = state.theme === "dark" ? "light" : "dark";
+  const segments = trimmed ? trimmed.split("/") : [];
+  const first = segments[0] || "live";
+  const tab =
+    first === "bxh"
+      ? "standings"
+      : first === "lich-dau"
+        ? "schedule"
+        : "live";
+
+  const leagueSlug = segments[1] || "lich-hom-nay";
+  return {
+    tab,
+    league: LEAGUE_ROUTE_MAP[leagueSlug] || "ALL",
+  };
+}
+
+function routeFromLeague(league) {
+  return LEAGUE_TO_ROUTE_MAP[league] || LEAGUE_TO_ROUTE_MAP.ALL;
+}
+
+function syncStateFromUrl() {
+  const routeState = parseAppPath(window.location.pathname);
+  state.selectedLeague = routeState.league;
+  return routeState.tab;
+}
+
+function updateAppUrl(tab, league, mode = "push") {
+  const tabSlug =
+    tab === "standings" ? "bxh" : tab === "schedule" ? "lich-dau" : "live";
+  const slug = routeFromLeague(league);
+  const nextPath = `/${tabSlug}/${slug}`;
+  if (window.location.pathname === nextPath) return;
+  if (mode === "replace") window.history.replaceState({}, "", nextPath);
+  else window.history.pushState({}, "", nextPath);
+}
+
+function applyTabView(tab) {
+  const navItems = elements.mainNavLinks?.querySelectorAll(".nav-item") || [];
+  navItems.forEach((nav) => nav.classList.remove("active"));
+  const activeItem = elements.mainNavLinks?.querySelector(
+    `.nav-item[data-tab="${tab}"]`,
+  );
+  activeItem?.classList.add("active");
+
+  const matchesList = document
+    .getElementById("matchesWrapper")
+    ?.closest(".matches-list");
+  const standingsSection = document.getElementById("standingsSection");
+
+  if (tab === "standings") {
+    if (elements.mobileTabs) elements.mobileTabs.style.display = "none";
+    if (elements.heroCarousel)
+      elements.heroCarousel.closest(".live-section").style.display = "none";
+    if (matchesList) matchesList.style.display = "none";
+    if (elements.dateFilter) elements.dateFilter.style.display = "none";
+    if (standingsSection) standingsSection.style.display = "block";
+    renderFullStandings(ctx);
+    return;
+  }
+
+  if (elements.mobileTabs) elements.mobileTabs.style.display = "flex";
+  if (elements.heroCarousel)
+    elements.heroCarousel.closest(".live-section").style.display = "block";
+  if (matchesList) matchesList.style.display = "block";
+  if (elements.dateFilter) elements.dateFilter.style.display = "";
+  if (standingsSection) standingsSection.style.display = "none";
+
+  if (tab === "live") {
+    state.searchQuery = "";
+    if (elements.globalSearch) elements.globalSearch.value = "";
+    if (state.selectedLeague === "ALL") state.selectedLeague = "Lịch thi đấu hôm nay";
+  }
+}
+
+function initTheme() {
+  let transitionCleanupTimer = null;
+
+  const startThemePerfMode = () => {
+    document.documentElement.classList.add("theme-switching");
+    document.body.classList.remove("theme-flash");
+    requestAnimationFrame(() => {
+      document.body.classList.add("theme-flash");
+    });
+    if (transitionCleanupTimer) clearTimeout(transitionCleanupTimer);
+    transitionCleanupTimer = setTimeout(() => {
+      document.documentElement.classList.remove("theme-switching");
+      document.body.classList.remove("theme-flash");
+    }, 260);
+  };
+
+  const applyTheme = (theme) => {
+    state.theme = theme;
     document.documentElement.setAttribute("data-theme", state.theme);
     elements.themeBtn.innerHTML =
       state.theme === "light"
         ? '<i class="fas fa-sun" style="color: #ff9800;"></i>'
         : '<i class="fas fa-moon"></i>';
     saveTheme(state.theme);
-    setTimeout(() => document.body.classList.remove("no-transition"), 50);
+  };
+
+  applyTheme(state.theme);
+
+  elements.themeBtn?.addEventListener("click", () => {
+    const nextTheme = state.theme === "dark" ? "light" : "dark";
+    startThemePerfMode();
+    applyTheme(nextTheme);
   });
 }
 
@@ -141,15 +270,23 @@ async function loadStandingsAndRender() {
 function initNavbar() {
   if (elements.globalSearch) {
     const onSearch = debounce((value) => {
-      state.searchQuery = String(value || "")
-        .toLowerCase()
-        .trim();
+      state.searchQuery = String(value || "").trim();
       renderHeroCarousel(ctx);
       renderMatchesList(ctx);
+      renderFullStandings(ctx);
     }, APP_CONFIG.searchDebounceMs);
     elements.globalSearch.addEventListener("input", (e) =>
       onSearch(e.target.value),
     );
+    elements.globalSearch.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        elements.globalSearch.value = "";
+        state.searchQuery = "";
+        renderHeroCarousel(ctx);
+        renderMatchesList(ctx);
+        renderFullStandings(ctx);
+      }
+    });
   }
 
   if (!elements.mainNavLinks) return;
@@ -157,87 +294,144 @@ function initNavbar() {
   navItems.forEach((item) => {
     item.addEventListener("click", (e) => {
       e.preventDefault();
-      navItems.forEach((nav) => nav.classList.remove("active"));
-      item.classList.add("active");
-
       const tab = item.getAttribute("data-tab");
-      const matchesList = document
-        .getElementById("matchesWrapper")
-        ?.closest(".matches-list");
-      const standingsSection = document.getElementById("standingsSection");
-
-      if (tab === "standings") {
-        if (elements.mobileTabs) elements.mobileTabs.style.display = "none";
-        if (elements.heroCarousel)
-          elements.heroCarousel.closest(".live-section").style.display = "none";
-        if (matchesList) matchesList.style.display = "none";
-        if (standingsSection) standingsSection.style.display = "block";
-        renderFullStandings(ctx);
-        return;
+      if (tab === "live" && state.selectedLeague === "ALL") {
+        state.selectedLeague = "Lịch thi đấu hôm nay";
       }
-
-      if (elements.mobileTabs) elements.mobileTabs.style.display = "flex";
-      if (elements.heroCarousel)
-        elements.heroCarousel.closest(".live-section").style.display = "block";
-      if (matchesList) matchesList.style.display = "block";
-      if (standingsSection) standingsSection.style.display = "none";
-
-      state.searchQuery = "";
-      if (elements.globalSearch) elements.globalSearch.value = "";
-
-      if (tab === "live") {
-        showToast(elements, "Đang hiển thị các trận Tâm điểm.");
-        window.filterData?.("Lịch thi đấu hôm nay");
-      } else {
-        window.filterData?.("ALL");
-      }
+      applyTabView(tab);
+      renderSidebarLeagues(ctx);
+      renderMobileTabs(ctx);
+      renderHeroCarousel(ctx);
+      renderMatchesList(ctx);
+      renderStandings(ctx);
+      renderFullStandings(ctx);
+      updateAppUrl(tab, state.selectedLeague, "push");
     });
   });
 }
 
+function applyDateFilter(value) {
+  state.dateFilter = value || "all";
+
+  if (elements.dateChips) {
+    elements.dateChips.querySelectorAll(".date-chip").forEach((btn) => {
+      btn.classList.toggle(
+        "active",
+        btn.dataset.date === state.dateFilter ||
+          (state.dateFilter.startsWith("20") && btn.dataset.date === "custom"),
+      );
+    });
+    if (/^\d{4}-\d{2}-\d{2}$/.test(state.dateFilter)) {
+      elements.dateChips
+        .querySelectorAll(".date-chip")
+        .forEach((btn) => btn.classList.remove("active"));
+    }
+  }
+
+  if (elements.dateClearBtn) {
+    elements.dateClearBtn.classList.toggle(
+      "visible",
+      state.dateFilter !== "all",
+    );
+  }
+
+  if (elements.dateInput) {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(state.dateFilter)) {
+      elements.dateInput.value = state.dateFilter;
+    } else {
+      elements.dateInput.value = "";
+    }
+  }
+
+  renderHeroCarousel(ctx);
+  renderMatchesList(ctx);
+}
+
+function initDateFilter() {
+  if (!elements.dateFilter) return;
+
+  if (elements.dateChips) {
+    elements.dateChips.addEventListener("click", (e) => {
+      const btn = e.target.closest(".date-chip");
+      if (!btn) return;
+      applyDateFilter(btn.dataset.date || "all");
+    });
+  }
+
+  if (elements.dateInput) {
+    elements.dateInput.addEventListener("change", (e) => {
+      const value = e.target.value;
+      if (value) applyDateFilter(value);
+      else applyDateFilter("all");
+    });
+  }
+
+  if (elements.dateClearBtn) {
+    elements.dateClearBtn.addEventListener("click", () => {
+      applyDateFilter("all");
+    });
+  }
+
+  applyDateFilter(state.dateFilter);
+}
+
 function initApp() {
+  const currentTab = syncStateFromUrl();
+  updateAppUrl(currentTab, state.selectedLeague, "replace");
   initTheme();
   initNavbar();
+  initDateFilter();
   bindUiEvents(ctx);
+  applyTabView(currentTab);
 
-  // initial load
+  window.addEventListener("popstate", () => {
+    const tab = syncStateFromUrl();
+    applyTabView(tab);
+    renderSidebarLeagues(ctx);
+    renderMobileTabs(ctx);
+    renderHeroCarousel(ctx);
+    renderMatchesList(ctx);
+    renderStandings(ctx);
+    renderFullStandings(ctx);
+  });
+
   loadMatchesAndRender();
   loadStandingsAndRender();
 
-  // periodic refresh for scores/schedule
   setInterval(loadMatchesAndRender, APP_CONFIG.refreshMs);
 }
 
+window.updateLeagueUrl = (league, mode = "push") =>
+  updateAppUrl(
+    elements.mainNavLinks?.querySelector(".nav-item.active")?.getAttribute("data-tab") ||
+      "live",
+    league,
+    mode,
+  );
+
 document.addEventListener("DOMContentLoaded", initApp);
 
-// ==========================================
-// ĐIỀU KHIỂN SIDEBAR MOBILE (DRAWER MENU)
-// ==========================================
 document.addEventListener("DOMContentLoaded", () => {
   const menuToggleBtn = document.getElementById("menuToggleBtn");
   const sidebar = document.getElementById("sidebar");
   const overlay = document.getElementById("sidebarOverlay");
 
   if (menuToggleBtn && sidebar && overlay) {
-    // Mở Sidebar
     menuToggleBtn.addEventListener("click", () => {
       sidebar.classList.add("show");
       overlay.classList.add("show");
-      document.body.style.overflow = "hidden"; // Khóa cuộn trang web bên dưới
+      document.body.style.overflow = "hidden";
     });
 
-    // Đóng Sidebar khi bấm ra ngoài lớp nền tối
     overlay.addEventListener("click", () => {
       sidebar.classList.remove("show");
       overlay.classList.remove("show");
-      document.body.style.overflow = ""; // Mở khóa cuộn trang
+      document.body.style.overflow = "";
     });
 
-    // Đóng Sidebar khi người dùng chọn 1 mục/giải đấu bên trong
     const sidebarLinks = sidebar.querySelectorAll("li");
     sidebarLinks.forEach((link) => {
       link.addEventListener("click", () => {
-        // Chỉ tự động đóng nếu đang ở màn hình điện thoại/tablet
         if (window.innerWidth <= 900) {
           sidebar.classList.remove("show");
           overlay.classList.remove("show");

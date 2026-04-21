@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tin tức bóng đá | Bóng Đá Ngoại Hạng</title>
+    <meta
+      name="description"
+      content="Bóng Đá Ngoại Hạng - chuyên trang tin tức, phân tích và nhận định Ngoại hạng Anh, La Liga, Serie A, Cúp C1 và FA Cup."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700;900&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/blog.css" />
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+    <link rel="apple-touch-icon" href="/assets/apple-touch-icon.svg" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#0b1220" />
+  </head>
+  <body class="magazine">
+    <header class="mag-masthead">
+      <div class="mag-container mag-masthead-row">
+        <div class="mag-brand">
+          <a class="mag-brand-link" href="/">
+            <span class="mag-brand-mark" aria-hidden="true"></span>
+            <span class="mag-brand-text">
+              <span class="mag-brand-title">Bóng Đá Ngoại Hạng</span>
+              <span class="mag-brand-sub">Tin tức - Phân tích - Nhận định</span>
+            </span>
+          </a>
+        </div>
+        <div class="mag-masthead-meta">
+          <span id="magToday" class="mag-today"></span>
+          <a class="mag-back-home" href="/">← Trang chủ</a>
+        </div>
+      </div>
+      <nav class="mag-catnav" aria-label="Chuyên mục">
+        <div class="mag-container mag-catnav-row" id="catNav">
+          <button class="mag-cat active" data-cat="all">Tất cả</button>
+          <button class="mag-cat" data-cat="Ngoại hạng Anh">Ngoại hạng Anh</button>
+          <button class="mag-cat" data-cat="La Liga">La Liga</button>
+          <button class="mag-cat" data-cat="Serie A">Serie A</button>
+          <button class="mag-cat" data-cat="Cúp C1">Cúp C1</button>
+          <button class="mag-cat" data-cat="FA Cup">FA Cup</button>
+        </div>
+      </nav>
+    </header>
+
+    <main class="mag-container mag-main">
+      <section id="heroSection" class="mag-hero" aria-label="Bài viết nổi bật"></section>
+
+      <section class="mag-section" aria-label="Bài viết chính">
+        <div class="mag-section-head">
+          <h2 class="mag-section-title">Đáng chú ý</h2>
+          <span class="mag-section-rule" aria-hidden="true"></span>
+        </div>
+        <div id="featuredGrid" class="mag-featured-grid"></div>
+      </section>
+
+      <section class="mag-section" aria-label="Bài viết mới nhất">
+        <div class="mag-section-head">
+          <h2 class="mag-section-title">Mới cập nhật</h2>
+          <span class="mag-section-rule" aria-hidden="true"></span>
+        </div>
+        <div id="latestList" class="mag-latest-list"></div>
+      </section>
+
+      <div id="emptyState" class="mag-empty hidden">
+        <p>Hiện chưa có bài viết nào trong chuyên mục này.</p>
+      </div>
+    </main>
+
+    <footer class="mag-footer">
+      <div class="mag-container mag-footer-row">
+        <div class="mag-footer-brand">
+          <strong>Bóng Đá Ngoại Hạng</strong>
+          <span>bongdangoaihang.com</span>
+        </div>
+        <div class="mag-footer-note">
+          Nội dung biên tập độc lập. © <span id="yearNow"></span> Bóng Đá Ngoại Hạng.
+        </div>
+      </div>
+    </footer>
+
+    <script type="module" src="/js/blog-list.js"></script>
+  </body>
+</html>

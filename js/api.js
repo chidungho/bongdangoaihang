@@ -73,7 +73,6 @@ export async function fetchMatches() {
     return normalizeMatchesPayload(await fetchJson(matchesApi));
   }
 
-  // AUTO: try API then fallback to mock
   try {
     return normalizeMatchesPayload(await fetchJson(matchesApi));
   } catch {
@@ -85,4 +84,3 @@ export async function fetchStandings() {
   const { standingsMock } = APP_CONFIG.endpoints;
   return await fetchJson(standingsMock);
 }
-

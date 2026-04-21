@@ -1,4 +1,21 @@
 import { genMatchCode } from './api.js';
+import {
+  matchesSearch,
+  normalizeSearch,
+  buildDateFilter,
+  describeDateFilter,
+} from './utils.js';
+
+function getStandingsLeagueKey(selectedLeague) {
+  return selectedLeague === 'ALL' || selectedLeague === 'Lịch thi đấu hôm nay'
+    ? 'Ngoại hạng Anh'
+    : selectedLeague;
+}
+
+function getStandingsLeagueLabel(leagueKey) {
+  if (leagueKey === 'Europa') return 'UEFA Europa League';
+  return leagueKey;
+}
 
 export function showToast(elements, message) {
   const toast = document.createElement('div');
@@ -69,11 +86,12 @@ export function renderFavSidebar({ state, elements }) {
 export function renderHeroCarousel({ state, elements }) {
   let filtered = state.matches;
 
+  const datePred = buildDateFilter(state.dateFilter);
+  filtered = filtered.filter(datePred);
+
   if (state.searchQuery) {
-    filtered = filtered.filter(
-      (m) =>
-        (m.homeTeam && m.homeTeam.toLowerCase().includes(state.searchQuery)) ||
-        (m.awayTeam && m.awayTeam.toLowerCase().includes(state.searchQuery))
+    filtered = filtered.filter((m) =>
+      matchesSearch(state.searchQuery, m.homeTeam, m.awayTeam, m.league)
     );
   } else if (state.selectedLeague !== 'ALL') {
     const keyword = state.selectedLeague.toLowerCase();
@@ -88,6 +106,7 @@ export function renderHeroCarousel({ state, elements }) {
   if (topMatches.length === 0) {
     elements.heroCarousel.innerHTML =
       `<div class="text-gray text-center p-4 w-100">Không có trận đấu nổi bật.</div>`;
+    elements.heroCarousel.dispatchEvent(new CustomEvent('hero-carousel:updated'));
     return;
   }
 
@@ -136,16 +155,18 @@ export function renderHeroCarousel({ state, elements }) {
   });
 
   elements.heroCarousel.innerHTML = ht;
+  elements.heroCarousel.dispatchEvent(new CustomEvent('hero-carousel:updated'));
 }
 
 export function renderMatchesList({ state, elements }) {
   let filtered = state.matches;
 
+  const datePred = buildDateFilter(state.dateFilter);
+  filtered = filtered.filter(datePred);
+
   if (state.searchQuery) {
-    filtered = filtered.filter(
-      (m) =>
-        (m.homeTeam && m.homeTeam.toLowerCase().includes(state.searchQuery)) ||
-        (m.awayTeam && m.awayTeam.toLowerCase().includes(state.searchQuery))
+    filtered = filtered.filter((m) =>
+      matchesSearch(state.searchQuery, m.homeTeam, m.awayTeam, m.league)
     );
   } else if (state.selectedLeague !== 'ALL') {
     const keyword = state.selectedLeague.toLowerCase();
@@ -153,10 +174,14 @@ export function renderMatchesList({ state, elements }) {
   }
 
   if (filtered.length === 0) {
+    const dateLabel = describeDateFilter(state.dateFilter);
+    const hint = dateLabel
+      ? `Không có trận đấu nào trong khoảng <strong>${dateLabel}</strong>.`
+      : 'Không có trận đấu nào.';
     elements.matchesWrapper.innerHTML = `
       <div class="glass-card text-center p-4">
         <i class="fas fa-folder-open mb-2 text-gray" style="font-size:2rem;"></i>
-        <p class="text-gray">Không có trận đấu nào.</p>
+        <p class="text-gray">${hint}</p>
       </div>
     `;
     return;
@@ -204,17 +229,15 @@ export function renderMatchesList({ state, elements }) {
 export function renderStandings({ state, elements }) {
   if (!elements.standingsBox) return;
 
-  const leagueKey =
-    state.selectedLeague === 'ALL' || state.selectedLeague === 'Lịch thi đấu hôm nay'
-      ? 'Ngoại hạng Anh'
-      : state.selectedLeague;
+  const leagueKey = getStandingsLeagueKey(state.selectedLeague);
+  const leagueLabel = getStandingsLeagueLabel(leagueKey);
 
   const table = state.standings?.[leagueKey];
   if (!Array.isArray(table) || table.length === 0) {
     const available = Object.keys(state.standings || {}).filter((k) => Array.isArray(state.standings[k]));
     elements.standingsBox.innerHTML = `
       <div class="text-sm text-gray">
-        BXH cho <b>${leagueKey}</b> hiện chưa có dữ liệu.
+        BXH cho <b>${leagueLabel}</b> hiện chưa có dữ liệu.
         ${available.length ? `<div class="mt-2">Đang có: ${available.join(', ')}</div>` : ''}
       </div>
     `;
@@ -222,7 +245,7 @@ export function renderStandings({ state, elements }) {
   }
 
   const top = table.slice(0, 6);
-  let html = `<div class="mini-standings"><div class="text-xs text-gray mb-2">BXH: <b>${leagueKey}</b></div>`;
+  let html = `<div class="mini-standings"><div class="text-xs text-gray mb-2">BXH: <b>${leagueLabel}</b></div>`;
   top.forEach((row) => {
     html += `
       <div class="mini-row">
@@ -241,28 +264,30 @@ export function renderStandings({ state, elements }) {
 
 export function renderFullStandings({ state }) {
   const tbody = document.getElementById('fullStandingsBody');
+  const standingsLeagueName = document.getElementById('standingsLeagueName');
   if (!tbody) return;
 
-  const leagueKey =
-    state.selectedLeague === 'ALL' || state.selectedLeague === 'Lịch thi đấu hôm nay'
-      ? 'Ngoại hạng Anh'
-      : state.selectedLeague;
+  const leagueKey = getStandingsLeagueKey(state.selectedLeague);
+  const leagueLabel = getStandingsLeagueLabel(leagueKey);
+
+  if (standingsLeagueName) standingsLeagueName.textContent = leagueLabel;
 
   const table = state.standings?.[leagueKey];
   if (!Array.isArray(table) || table.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="11" class="text-center text-gray">Chưa có dữ liệu BXH cho ${leagueKey}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="10" class="text-center text-gray">Chưa có dữ liệu BXH cho ${leagueLabel}</td></tr>`;
     return;
   }
 
-  tbody.innerHTML = table
-    .map((row) => {
-      const form = Array.isArray(row.form)
-        ? row.form
-            .slice(0, 5)
-            .map((x) => `<span class="form-dot form-${String(x).toLowerCase()}">${x}</span>`)
-            .join('')
-        : '';
+  const q = normalizeSearch(state.searchQuery);
+  const rows = q ? table.filter((row) => matchesSearch(q, row.team)) : table;
 
+  if (rows.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="10" class="text-center text-gray">Không tìm thấy đội phù hợp với từ khoá "${state.searchQuery}"</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = rows
+    .map((row) => {
       return `
         <tr>
           <td>${row.rank}</td>
@@ -272,7 +297,6 @@ export function renderFullStandings({ state }) {
               <span>${row.team}</span>
             </div>
           </td>
-          <td>${row.latestResult || ''}</td>
           <td>${row.played}</td>
           <td>${row.win}</td>
           <td>${row.draw}</td>
@@ -281,9 +305,8 @@ export function renderFullStandings({ state }) {
           <td class="hide-mobile">${row.ga}</td>
           <td>${row.gd}</td>
           <td style="font-weight:700;">${row.points}</td>
-          <td class="hide-mobile">${form}</td>
         </tr>
       `;
     })
     .join('');
-}  
+}

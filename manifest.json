@@ -1,18 +1,25 @@
 {
-  "name": "GoalFlash Premier League",
-  "short_name": "GoalFlash",
-  "description": "Lich thi dau va BXH Premier League tu 24h",
+{
+  "name": "Bong Da Ngoai Hang",
+  "short_name": "BDNH",
+  "description": "Trang bongdangoaihang.com theo doi lich thi dau, ket qua va BXH bong da",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0d1117",
-  "theme_color": "#22c55e",
+  "background_color": "#0b1220",
+  "theme_color": "#0b1220",
   "orientation": "portrait-primary",
   "icons": [
     {
       "src": "/assets/favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/apple-touch-icon.svg",
+      "sizes": "180x180",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
     }
   ]
 }
