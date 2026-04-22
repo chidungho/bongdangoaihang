@@ -1,21 +1,10 @@
 [
   {
     "league": "Ngoại hạng Anh",
-    "round": "Vòng 33",
-    "date": "21/04/2026",
-    "time": "02:00",
-    "score": "0 - 0",
-    "homeTeam": "Crystal Palace",
-    "awayTeam": "West Ham United",
-    "homeLogo": "https://icdn.24h.com.vn/upload/livescore/2-2021/kytq1/2021-05-17/crystal-palace_35x35.png",
-    "awayLogo": "https://icdn.24h.com.vn/upload/livescore/2-2021/giangbt/2021-05-25/west-ham-united_35x35.png"
-  },
-  {
-    "league": "Ngoại hạng Anh",
     "round": "Vòng 34",
     "date": "22/04/2026",
     "time": "02:00",
-    "score": "",
+    "score": "3 - 0",
     "homeTeam": "Brighton & Hove Albion",
     "awayTeam": "Chelsea",
     "homeLogo": "https://icdn.24h.com.vn/upload/livescore/2-2021/giangbt/2021-05-25/brighton---hove-albion_35x35.png",
@@ -449,6 +438,17 @@
     "awayTeam": "Fulham",
     "homeLogo": "https://icdn.24h.com.vn/upload/livescore/2-2021/giangbt/2021-05-25/wolverhampton_35x35.png",
     "awayLogo": "https://icdn.24h.com.vn/upload/livescore/2-2021/giangbt/2021-05-25/fulham_35x35.png"
+  },
+  {
+    "league": "Ngoại hạng Anh",
+    "round": "Kết quả Vòng 33",
+    "date": "21/04/2026",
+    "time": "02:00",
+    "score": "0 - 0",
+    "homeTeam": "Crystal Palace",
+    "awayTeam": "West Ham United",
+    "homeLogo": "https://icdn.24h.com.vn/upload/livescore/2-2021/kytq1/2021-05-17/crystal-palace_35x35.png",
+    "awayLogo": "https://icdn.24h.com.vn/upload/livescore/2-2021/giangbt/2021-05-25/west-ham-united_35x35.png"
   },
   {
     "league": "Ngoại hạng Anh",
@@ -7142,30 +7142,8 @@
     "league": "La Liga",
     "round": "Vòng 33",
     "date": "22/04/2026",
-    "time": "00:00",
-    "score": "",
-    "homeTeam": "Athletic Club",
-    "awayTeam": "Osasuna",
-    "homeLogo": "https://icdn.24h.com.vn/upload/livescore/2-2021/giangbt/2021-05-25/athletic-club_35x35.png",
-    "awayLogo": "https://icdn.24h.com.vn/upload/livescore/2-2021/giangbt/2021-05-25/osasuna_35x35.png"
-  },
-  {
-    "league": "La Liga",
-    "round": "Vòng 33",
-    "date": "22/04/2026",
-    "time": "00:00",
-    "score": "",
-    "homeTeam": "Mallorca",
-    "awayTeam": "Valencia",
-    "homeLogo": "https://icdn.24h.com.vn/upload/livescore/3-2021/kytq1/2021-08-25/091239433_mallorca_35x35.png",
-    "awayLogo": "https://icdn.24h.com.vn/upload/livescore/2-2021/kytq1/2021-05-17/valencia_35x35.png"
-  },
-  {
-    "league": "La Liga",
-    "round": "Vòng 33",
-    "date": "22/04/2026",
     "time": "02:30",
-    "score": "",
+    "score": "2 - 1",
     "homeTeam": "Real Madrid",
     "awayTeam": "Alavés",
     "homeLogo": "https://icdn.24h.com.vn/upload/livescore/2-2021/kytq1/2021-05-17/real-madrid_35x35.png",
@@ -7176,7 +7154,7 @@
     "round": "Vòng 33",
     "date": "22/04/2026",
     "time": "02:30",
-    "score": "",
+    "score": "2 - 3",
     "homeTeam": "Girona",
     "awayTeam": "Real Betis",
     "homeLogo": "https://icdn.24h.com.vn/upload/livescore/3-2022/kytq1/2022-08-15/151200126_girona_35x35.png",
@@ -7687,6 +7665,28 @@
     "awayTeam": "Real Oviedo",
     "homeLogo": "https://icdn.24h.com.vn/upload/livescore/2-2021/kytq1/2021-05-17/real-madrid_35x35.png",
     "awayLogo": "https://icdn.24h.com.vn/upload/livescore/4-2025/hungnq/2025-10-29/151337605_images_35x35.png"
+  },
+  {
+    "league": "La Liga",
+    "round": "Kết quả Vòng 33",
+    "date": "22/04/2026",
+    "time": "00:00",
+    "score": "1 - 1",
+    "homeTeam": "Mallorca",
+    "awayTeam": "Valencia",
+    "homeLogo": "https://icdn.24h.com.vn/upload/livescore/3-2021/kytq1/2021-08-25/091239433_mallorca_35x35.png",
+    "awayLogo": "https://icdn.24h.com.vn/upload/livescore/2-2021/kytq1/2021-05-17/valencia_35x35.png"
+  },
+  {
+    "league": "La Liga",
+    "round": "Kết quả Vòng 33",
+    "date": "22/04/2026",
+    "time": "00:00",
+    "score": "1 - 0",
+    "homeTeam": "Athletic Club",
+    "awayTeam": "Osasuna",
+    "homeLogo": "https://icdn.24h.com.vn/upload/livescore/2-2021/giangbt/2021-05-25/athletic-club_35x35.png",
+    "awayLogo": "https://icdn.24h.com.vn/upload/livescore/2-2021/giangbt/2021-05-25/osasuna_35x35.png"
   },
   {
     "league": "La Liga",
@@ -11045,17 +11045,6 @@
   },
   {
     "league": "Serie A",
-    "round": "Vòng 33",
-    "date": "21/04/2026",
-    "time": "01:45",
-    "score": "1 - 1",
-    "homeTeam": "Lecce",
-    "awayTeam": "Fiorentina",
-    "homeLogo": "https://icdn.24h.com.vn/upload/livescore/4-2022/kytq1/2022-10-17/082746249_lecce_35x35.png",
-    "awayLogo": "https://icdn.24h.com.vn/upload/livescore/2-2021/kytq1/2021-05-17/fiorentina_35x35.png"
-  },
-  {
-    "league": "Serie A",
     "round": "Vòng 34",
     "date": "25/04/2026",
     "time": "01:45",
@@ -11493,6 +11482,127 @@
     "awayTeam": "Cremonese",
     "homeLogo": "https://icdn.24h.com.vn/upload/livescore/2-2021/kytq1/2021-05-17/udinese_35x35.png",
     "awayLogo": "https://icdn.24h.com.vn/upload/livescore/3-2022/kytq1/2022-08-22/160554743_cremonese_35x35.png"
+  },
+  {
+    "league": "Serie A",
+    "round": "Vòng 38",
+    "date": "24/05/2026",
+    "time": "07:00",
+    "score": "",
+    "homeTeam": "Bologna",
+    "awayTeam": "Inter Milan",
+    "homeLogo": "https://icdn.24h.com.vn/upload/livescore/2-2021/kytq1/2021-05-17/bologna_35x35.png",
+    "awayLogo": "https://icdn.24h.com.vn/upload/livescore/2-2025/kytq1/2025-04-16/133519118_image_35x35.png"
+  },
+  {
+    "league": "Serie A",
+    "round": "Vòng 38",
+    "date": "24/05/2026",
+    "time": "07:00",
+    "score": "",
+    "homeTeam": "Cremonese",
+    "awayTeam": "Como",
+    "homeLogo": "https://icdn.24h.com.vn/upload/livescore/3-2022/kytq1/2022-08-22/160554743_cremonese_35x35.png",
+    "awayLogo": "https://icdn.24h.com.vn/upload/livescore/3-2024/kytq1/2024-07-05/132940254_como_35x35.png"
+  },
+  {
+    "league": "Serie A",
+    "round": "Vòng 38",
+    "date": "24/05/2026",
+    "time": "07:00",
+    "score": "",
+    "homeTeam": "Fiorentina",
+    "awayTeam": "Atalanta",
+    "homeLogo": "https://icdn.24h.com.vn/upload/livescore/2-2021/kytq1/2021-05-17/fiorentina_35x35.png",
+    "awayLogo": "https://icdn.24h.com.vn/upload/livescore/2-2021/kytq1/2021-05-17/atalanta_35x35.png"
+  },
+  {
+    "league": "Serie A",
+    "round": "Vòng 38",
+    "date": "24/05/2026",
+    "time": "07:00",
+    "score": "",
+    "homeTeam": "Lazio",
+    "awayTeam": "Pisa",
+    "homeLogo": "https://icdn.24h.com.vn/upload/livescore/2-2021/kytq1/2021-05-17/lazio_35x35.png",
+    "awayLogo": "https://icdn.24h.com.vn/upload/livescore/4-2025/hungnq/2025-10-29/151526362_pisa_35x35.png"
+  },
+  {
+    "league": "Serie A",
+    "round": "Vòng 38",
+    "date": "24/05/2026",
+    "time": "07:00",
+    "score": "",
+    "homeTeam": "Lecce",
+    "awayTeam": "Genoa",
+    "homeLogo": "https://icdn.24h.com.vn/upload/livescore/4-2022/kytq1/2022-10-17/082746249_lecce_35x35.png",
+    "awayLogo": "https://icdn.24h.com.vn/upload/livescore/2-2021/kytq1/2021-05-17/genoa_35x35.png"
+  },
+  {
+    "league": "Serie A",
+    "round": "Vòng 38",
+    "date": "24/05/2026",
+    "time": "07:00",
+    "score": "",
+    "homeTeam": "Milan",
+    "awayTeam": "Cagliari",
+    "homeLogo": "https://icdn.24h.com.vn/upload/livescore/2-2021/kytq1/2021-05-17/milan_35x35.png",
+    "awayLogo": "https://icdn.24h.com.vn/upload/livescore/2-2021/giangbt/2021-05-25/cagliari_35x35.png"
+  },
+  {
+    "league": "Serie A",
+    "round": "Vòng 38",
+    "date": "24/05/2026",
+    "time": "07:00",
+    "score": "",
+    "homeTeam": "Napoli",
+    "awayTeam": "Udinese",
+    "homeLogo": "https://icdn.24h.com.vn/upload/livescore/2-2021/kytq1/2021-05-17/napoli_35x35.png",
+    "awayLogo": "https://icdn.24h.com.vn/upload/livescore/2-2021/kytq1/2021-05-17/udinese_35x35.png"
+  },
+  {
+    "league": "Serie A",
+    "round": "Vòng 38",
+    "date": "24/05/2026",
+    "time": "07:00",
+    "score": "",
+    "homeTeam": "Parma",
+    "awayTeam": "Sassuolo",
+    "homeLogo": "https://icdn.24h.com.vn/upload/livescore/2-2021/giangbt/2021-05-25/parma_35x35.png",
+    "awayLogo": "https://icdn.24h.com.vn/upload/livescore/2-2021/kytq1/2021-05-17/u.s.-sassuolo-calcio_35x35.png"
+  },
+  {
+    "league": "Serie A",
+    "round": "Vòng 38",
+    "date": "24/05/2026",
+    "time": "07:00",
+    "score": "",
+    "homeTeam": "Torino",
+    "awayTeam": "Juventus",
+    "homeLogo": "https://icdn.24h.com.vn/upload/livescore/2-2021/kytq1/2021-05-17/torino_35x35.png",
+    "awayLogo": "https://icdn.24h.com.vn/upload/livescore/4-2022/kytq1/2022-10-17/082825353_juventus_35x35.png"
+  },
+  {
+    "league": "Serie A",
+    "round": "Vòng 38",
+    "date": "24/05/2026",
+    "time": "07:00",
+    "score": "",
+    "homeTeam": "Hellas Verona",
+    "awayTeam": "Roma",
+    "homeLogo": "https://icdn.24h.com.vn/upload/livescore/2-2025/hungnq/2025-05-04/160415866_verona_35x35.png",
+    "awayLogo": "https://icdn.24h.com.vn/upload/livescore/2-2021/kytq1/2021-05-17/roma_35x35.png"
+  },
+  {
+    "league": "Serie A",
+    "round": "Kết quả Vòng 33",
+    "date": "21/04/2026",
+    "time": "01:45",
+    "score": "1 - 1",
+    "homeTeam": "Lecce",
+    "awayTeam": "Fiorentina",
+    "homeLogo": "https://icdn.24h.com.vn/upload/livescore/4-2022/kytq1/2022-10-17/082746249_lecce_35x35.png",
+    "awayLogo": "https://icdn.24h.com.vn/upload/livescore/2-2021/kytq1/2021-05-17/fiorentina_35x35.png"
   },
   {
     "league": "Serie A",
