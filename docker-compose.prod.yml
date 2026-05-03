@@ -1,0 +1,9 @@
+services:
+  app:
+    image: ${IMAGE_URI:-bongdangoaihang-com:latest}
+    container_name: bongdangoaihang-app
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    restart: unless-stopped

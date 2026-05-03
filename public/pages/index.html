@@ -46,7 +46,7 @@
           <a href="#" class="nav-item" data-tab="standings"
             ><i class="fas fa-trophy"></i> BXH</a
           >
-          <a href="/tin-tuc"><i class="fas fa-newspaper"></i> Blog</a>
+          <a href="/tin-tuc"><i class="fas fa-newspaper"></i> Tin Tức</a>
         </div>
 
         <div class="nav-actions">
@@ -88,7 +88,7 @@
             <li class="sk-loader inline-sk w-75"></li>
           </ul>
 
-          <h3 class="sb-title mt-4">📊 BẢNG XẾP HẠNG</h3>
+          <h3 class="sb-title mt-4">BẢNG XẾP HẠNG</h3>
           <div class="standings-box mb-3" id="standingsBox">
             <div class="sk-loader mb-2"></div>
             <div class="sk-loader mb-2"></div>
@@ -107,29 +107,31 @@
         
         <section class="live-section">
           <div class="section-head mb-3">
-            <h2><span class="live-dot"></span> Kết quả mới nhất</h2>
-            <a href="#" class="view-all"
-              >Xem tất cả <i class="fas fa-angle-right"></i
-            ></a>
+            <h2><span class="live-dot"></span> Sắp diễn ra</h2>
           </div>
 
-          <div class="hero-carousel-shell">
+          <div class="hero-carousel-wrap">
             <button
+              type="button"
               class="hero-nav-btn hero-nav-btn-left"
               id="heroPrevBtn"
-              type="button"
-              aria-label="Trượt sang trái"
+              aria-label="Xem trận trước"
+              title="Xem trận trước"
             >
               <i class="fas fa-chevron-left"></i>
             </button>
 
-            <div class="hero-carousel" id="heroCarousel"></div>
+            <div class="hero-carousel" id="heroCarousel">
+              
+              
+            </div>
 
             <button
+              type="button"
               class="hero-nav-btn hero-nav-btn-right"
               id="heroNextBtn"
-              type="button"
-              aria-label="Trượt sang phải"
+              aria-label="Xem trận tiếp theo"
+              title="Xem trận tiếp theo"
             >
               <i class="fas fa-chevron-right"></i>
             </button>
@@ -227,6 +229,7 @@
                   <tr>
                     <th style="width: 40px">TT</th>
                     <th style="text-align: left; padding-left: 10px">Đội</th>
+                    <th>Kết quả<br />mới nhất</th>
                     <th>Trận</th>
                     <th>Thắng</th>
                     <th>Hòa</th>
@@ -237,6 +240,7 @@
                     <th style="font-weight: 700; color: var(--text-primary)">
                       Điểm
                     </th>
+                    <th class="hide-mobile">Phong độ 5 trận</th>
                   </tr>
                 </thead>
                 <tbody id="fullStandingsBody">
@@ -267,8 +271,22 @@
             <a href="/live/lich-hom-nay">Live</a>
             <a href="/lich-dau/ngoai-hang-anh">Lịch đấu</a>
             <a href="/bxh/ngoai-hang-anh">BXH</a>
-            <a href="/tin-tuc">Blog</a>
+            <a href="/tin-tuc">Tin Tức</a>
           </div>
+        </div>
+
+        <div class="footer-col footer-banner-col">
+          <div class="footer-col-title">Đối tác truyền thông</div>
+          <a
+            id="footerBannerLink"
+            class="footer-banner-card"
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Banner đối tác"
+          >
+            <img id="footerBannerImg" alt="Banner đối tác footer" />
+          </a>
         </div>
 
         <div class="footer-col footer-col-right">
@@ -276,7 +294,7 @@
           <div class="footer-meta">
             <div><strong>Website:</strong> bongdangoaihang.com</div>
             <div><strong>Đơn vị vận hành:</strong> Bóng Đá Ngoại Hạng Media</div>
-            <div><strong>Phiên bản:</strong> 2026.04</div>
+            <div><strong>Phiên bản:</strong>v1.1.2</div>
           </div>
         </div>
       </div>

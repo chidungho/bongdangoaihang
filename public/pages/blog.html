@@ -49,28 +49,42 @@
       </nav>
     </header>
 
-    <main class="mag-container mag-main">
-      <section id="heroSection" class="mag-hero" aria-label="Bài viết nổi bật"></section>
+    <main class="news-page-shell" aria-label="Trang tin tức">
+      <aside class="news-rail news-rail-left" aria-label="Quảng cáo bên trái">
+        <a id="newsBannerLink1" class="news-ad-card" href="#" target="_blank" rel="noopener noreferrer">
+          <img id="newsBannerImg1" alt="Banner quảng cáo bên trái" />
+        </a>
+      </aside>
 
-      <section class="mag-section" aria-label="Bài viết chính">
-        <div class="mag-section-head">
-          <h2 class="mag-section-title">Đáng chú ý</h2>
-          <span class="mag-section-rule" aria-hidden="true"></span>
+      <section class="mag-container mag-main news-main-content">
+        <section id="heroSection" class="mag-hero" aria-label="Bài viết nổi bật"></section>
+
+        <section class="mag-section" aria-label="Bài viết chính">
+          <div class="mag-section-head">
+            <h2 class="mag-section-title">Đáng chú ý</h2>
+            <span class="mag-section-rule" aria-hidden="true"></span>
+          </div>
+          <div id="featuredGrid" class="mag-featured-grid"></div>
+        </section>
+
+        <section class="mag-section" aria-label="Bài viết mới nhất">
+          <div class="mag-section-head">
+            <h2 class="mag-section-title">Mới cập nhật</h2>
+            <span class="mag-section-rule" aria-hidden="true"></span>
+          </div>
+          <div id="latestList" class="mag-latest-list"></div>
+        </section>
+
+        <div id="emptyState" class="mag-empty hidden">
+          <p>Hiện chưa có bài viết nào trong chuyên mục này.</p>
         </div>
-        <div id="featuredGrid" class="mag-featured-grid"></div>
       </section>
 
-      <section class="mag-section" aria-label="Bài viết mới nhất">
-        <div class="mag-section-head">
-          <h2 class="mag-section-title">Mới cập nhật</h2>
-          <span class="mag-section-rule" aria-hidden="true"></span>
-        </div>
-        <div id="latestList" class="mag-latest-list"></div>
-      </section>
-
-      <div id="emptyState" class="mag-empty hidden">
-        <p>Hiện chưa có bài viết nào trong chuyên mục này.</p>
-      </div>
+      <aside class="news-rail news-rail-right" aria-label="Quảng cáo bên phải">
+        <a id="newsBannerLink2" class="news-ad-card" href="#" target="_blank" rel="noopener noreferrer">
+          <img id="newsBannerImg2" alt="Banner quảng cáo bên phải" />
+        </a>
+      </aside>
     </main>
 
     <footer class="mag-footer">
