@@ -1,5 +1,6 @@
 const $ = (id) => document.getElementById(id);
 const tokenKey = 'bdnh_admin_token';
+const refreshTokenKey = 'bdnh_admin_refresh_token';
 let token = localStorage.getItem(tokenKey) || '';
 let editor = null;
 
@@ -19,8 +20,13 @@ function showLogin() {
 }
 
 function logout() {
+  fetch('/api/auth/logout', {
+    method: 'POST',
+    headers: token ? authHeaders() : { 'Content-Type': 'application/json' },
+  }).catch(() => {});
   token = '';
   localStorage.removeItem(tokenKey);
+  localStorage.removeItem(refreshTokenKey);
   showLogin();
 }
 
@@ -52,6 +58,7 @@ async function login() {
   if (data.user.role !== 'admin') throw new Error('Tài khoản không phải admin');
   token = data.token;
   localStorage.setItem(tokenKey, token);
+  if (data.refreshToken) localStorage.setItem(refreshTokenKey, data.refreshToken);
   showDashboard();
   switchTab('overview');
   await Promise.all([loadPosts(), loadUsers(), loadModeration(), loadNewsBanners(), loadFooterBanner()]);

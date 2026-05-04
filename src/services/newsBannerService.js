@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const env = require("../config/env");
+const { sanitizeHttpUrl } = require("../utils/sanitize");
 
 const bannerFilePath = path.join(env.rootDir, "data", "news-banners.json");
 
@@ -36,8 +37,8 @@ function readBanners() {
     return parsed.slice(0, 2).map((item, idx) => ({
       id: item?.id || `banner${idx + 1}`,
       title: String(item?.title || `Banner ${idx + 1}`),
-      imageUrl: String(item?.imageUrl || ""),
-      targetUrl: String(item?.targetUrl || "#"),
+      imageUrl: sanitizeHttpUrl(item?.imageUrl || "", ""),
+      targetUrl: sanitizeHttpUrl(item?.targetUrl || "#", "#"),
     }));
   } catch (error) {
     return DEFAULT_BANNERS;
@@ -49,8 +50,8 @@ function saveBanners(items) {
   const clean = (Array.isArray(items) ? items : []).slice(0, 2).map((item, idx) => ({
     id: `banner${idx + 1}`,
     title: String(item?.title || `Banner ${idx + 1}`),
-    imageUrl: String(item?.imageUrl || "").trim(),
-    targetUrl: String(item?.targetUrl || "#").trim(),
+    imageUrl: sanitizeHttpUrl(item?.imageUrl || "", ""),
+    targetUrl: sanitizeHttpUrl(item?.targetUrl || "#", "#"),
   }));
   while (clean.length < 2) {
     clean.push({

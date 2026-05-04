@@ -8,6 +8,7 @@ export const APP_CONFIG = {
   dataSource: DATA_SOURCE.AUTO,
   endpoints: {
     matchesApi: '/api/matches',
+    scoresApi: '/api/scores',
     matchesMock: '/public_api_data.json',
     standingsApi: '/api/standings',
     standingsMock: '/public_standings_data.json',

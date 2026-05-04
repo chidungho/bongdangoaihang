@@ -1,5 +1,5 @@
 import { APP_CONFIG } from "./config.js";
-import { fetchMatches, fetchStandings } from "./api.js";
+import { fetchMatches, fetchScores, fetchStandings } from "./api.js";
 import { loadFavorites, loadTheme, saveTheme } from "./storage.js";
 import { debounce } from "./utils.js";
 import {
@@ -16,6 +16,7 @@ import { bindUiEvents } from "./events.js";
 
 const state = {
   matches: [],
+  scores: [],
   standings: {},
   currentTab: "live",
   selectedLeague: "ALL",
@@ -136,7 +137,8 @@ function isAppRoute(pathname) {
     pathname === "/" ||
     pathname.startsWith("/live") ||
     pathname.startsWith("/lich-dau") ||
-    pathname.startsWith("/bxh")
+    pathname.startsWith("/bxh") ||
+    pathname.startsWith("/ti-so")
   );
 }
 
@@ -150,11 +152,14 @@ function parseAppPath(pathname) {
   const tab =
     first === "bxh"
       ? "standings"
+      : first === "ti-so"
+        ? "scores"
       : first === "lich-dau"
         ? "schedule"
         : "live";
 
-  const leagueSlug = segments[1] || (tab === "live" ? "ngoai-hang-anh" : "lich-hom-nay");
+  const leagueSlug =
+    segments[1] || (tab === "live" ? "ngoai-hang-anh" : tab === "scores" ? "all" : "lich-hom-nay");
   if (tab === "live" && (leagueSlug === "lich-hom-nay" || leagueSlug === "all")) {
     return { tab, league: "Ngoại hạng Anh" };
   }
@@ -182,7 +187,13 @@ function syncStateFromUrl() {
 
 function updateAppUrl(tab, league, mode = "push") {
   const tabSlug =
-    tab === "standings" ? "bxh" : tab === "schedule" ? "lich-dau" : "live";
+    tab === "standings"
+      ? "bxh"
+      : tab === "schedule"
+        ? "lich-dau"
+        : tab === "scores"
+          ? "ti-so"
+          : "live";
   const slug = routeFromLeague(league, tab);
   const nextPath = `/${tabSlug}/${slug}`;
   if (window.location.pathname === nextPath) return;
@@ -218,10 +229,12 @@ function applyTabView(tab) {
   if (elements.mobileTabs) elements.mobileTabs.style.display = "flex";
   if (elements.heroCarousel) {
     const heroSection = elements.heroCarousel.closest(".live-section");
-    if (heroSection) heroSection.style.display = tab === "live" ? "none" : "block";
+    if (heroSection) heroSection.style.display = tab === "live" || tab === "scores" ? "none" : "block";
   }
   if (matchesList) matchesList.style.display = "block";
-  if (elements.dateFilter) elements.dateFilter.style.display = tab === "live" ? "none" : "";
+  if (elements.dateFilter) {
+    elements.dateFilter.style.display = tab === "live" || tab === "scores" ? "none" : "";
+  }
   if (standingsSection) standingsSection.style.display = "none";
 
   if (tab === "live") {
@@ -282,6 +295,17 @@ async function loadMatchesAndRender() {
   } catch (e) {
     console.error(e);
     showToast(elements, "Không thể cập nhật lịch thi đấu/tỉ số.");
+  }
+}
+
+async function loadScoresAndRender() {
+  try {
+    state.scores = await fetchScores();
+    if (state.currentTab === "scores" || state.currentTab === "schedule") {
+      renderMatchesList(ctx);
+    }
+  } catch (e) {
+    console.error(e);
   }
 }
 
@@ -485,10 +509,12 @@ function initApp() {
   });
 
   loadMatchesAndRender();
+  loadScoresAndRender();
   loadStandingsAndRender();
   loadFooterBanner();
 
   setInterval(loadMatchesAndRender, APP_CONFIG.refreshMs);
+  setInterval(loadScoresAndRender, APP_CONFIG.refreshMs);
   setInterval(() => {
     if (state.currentTab === "live") renderMatchesList(ctx);
   }, 900000);

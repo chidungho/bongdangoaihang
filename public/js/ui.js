@@ -19,6 +19,22 @@ function getStandingsLeagueLabel(leagueKey) {
   return leagueKey;
 }
 
+function toScoreKey(match) {
+  const league = normalizeSearch(match?.league || '');
+  const date = String(match?.date || '').trim();
+  const home = normalizeSearch(match?.homeTeam || '');
+  const away = normalizeSearch(match?.awayTeam || '');
+  return `${league}|${date}|${home}|${away}`;
+}
+
+function splitTimeDisplay(match) {
+  const raw = String(match?.time || '').trim();
+  const main = raw.match(/\d{1,2}:\d{2}/)?.[0] || raw || '--:--';
+  const remain = raw.replace(main, '').trim();
+  const sub = remain || String(match?.date || '').trim();
+  return { main, sub };
+}
+
 export function showToast(elements, message) {
   const toast = document.createElement('div');
   toast.className = 'toast';
@@ -32,7 +48,7 @@ export function showToast(elements, message) {
 }
 
 export function renderSidebarLeagues({ state, elements, DISPLAY_LEAGUES, LEAGUE_ICONS }) {
-  const showTodayShortcut = state.currentTab !== 'standings';
+  const showTodayShortcut = state.currentTab !== 'standings' && state.currentTab !== 'scores';
   let ht = '';
 
   if (showTodayShortcut) {
@@ -58,7 +74,8 @@ export function renderSidebarLeagues({ state, elements, DISPLAY_LEAGUES, LEAGUE_
 }
 
 export function renderMobileTabs({ state, elements, DISPLAY_LEAGUES }) {
-  let ht = `<button class="mobile-tab ${state.selectedLeague === 'ALL' ? 'active' : ''}" data-action="filter" data-league="ALL">Lịch hôm nay</button>`;
+  const allLabel = state.currentTab === 'scores' ? 'Tất cả' : 'Lịch hôm nay';
+  let ht = `<button class="mobile-tab ${state.selectedLeague === 'ALL' ? 'active' : ''}" data-action="filter" data-league="ALL">${allLabel}</button>`;
   DISPLAY_LEAGUES.slice(1).forEach((def) => {
     ht += `<button class="mobile-tab ${state.selectedLeague === def.search ? 'active' : ''}" data-action="filter" data-league="${def.search}">${def.name}</button>`;
   });
@@ -169,9 +186,24 @@ export function renderHeroCarousel({ state, elements }) {
 }
 
 export function renderMatchesList({ state, elements }) {
-  let filtered = state.matches;
+  let sourceMatches = state.currentTab === 'scores' ? state.scores : state.matches;
 
-  if (state.currentTab !== 'live') {
+  if (state.currentTab === 'schedule' && Array.isArray(state.scores) && state.scores.length) {
+    const scoreMap = new Map();
+    state.scores.forEach((m) => {
+      if (!m?.score) return;
+      scoreMap.set(toScoreKey(m), m.score);
+    });
+    sourceMatches = sourceMatches.map((m) => {
+      const score = scoreMap.get(toScoreKey(m));
+      if (!score) return m;
+      return { ...m, score, status: 'finished' };
+    });
+  }
+
+  let filtered = sourceMatches;
+
+  if (state.currentTab !== 'live' && state.currentTab !== 'scores') {
     const datePred = buildDateFilter(state.dateFilter);
     filtered = filtered.filter(datePred);
   }
@@ -275,6 +307,90 @@ export function renderMatchesList({ state, elements }) {
     return;
   }
 
+  if (state.currentTab === 'scores') {
+    const now = new Date();
+    const today = new Date(now);
+    today.setHours(0, 0, 0, 0);
+    const start = new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000);
+    const end = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+
+    const scoreRows = filtered
+      .filter((m) => /\d+\s*-\s*\d+/.test(String(m.score || '')))
+      .map((m) => ({ ...m, kickoff: parseMatchDateTime(m.date, m.time) }))
+      .filter((m) => m.kickoff && m.kickoff >= start && m.kickoff < end);
+
+    scoreRows.sort((a, b) => {
+      const aDay = new Date(a.kickoff);
+      const bDay = new Date(b.kickoff);
+      aDay.setHours(0, 0, 0, 0);
+      bDay.setHours(0, 0, 0, 0);
+      const aIsToday = aDay.getTime() === today.getTime();
+      const bIsToday = bDay.getTime() === today.getTime();
+      if (aIsToday && !bIsToday) return -1;
+      if (!aIsToday && bIsToday) return 1;
+      if (bDay.getTime() !== aDay.getTime()) return bDay.getTime() - aDay.getTime();
+      return b.kickoff.getTime() - a.kickoff.getTime();
+    });
+
+    if (!scoreRows.length) {
+      elements.matchesWrapper.innerHTML = `
+        <div class="glass-card text-center p-4">
+          <i class="fas fa-folder-open mb-2 text-gray" style="font-size:2rem;"></i>
+          <p class="text-gray">Chưa có dữ liệu tỉ số trong 7 ngày gần nhất.</p>
+        </div>
+      `;
+      return;
+    }
+
+    let currentGroup = '';
+    let html = '';
+    scoreRows.forEach((m) => {
+      const timeView = splitTimeDisplay(m);
+      const d = new Date(m.kickoff);
+      const groupTitle = d.toLocaleDateString('vi-VN', {
+        weekday: 'long',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      });
+      if (groupTitle !== currentGroup) {
+        html += `
+          <div class="league-header">
+            <i class="fas fa-futbol text-primary"></i> ${groupTitle}
+          </div>
+        `;
+        currentGroup = groupTitle;
+      }
+      const mCode = genMatchCode(m);
+      const isFav = state.favorites.includes(mCode);
+      html += `
+        <div class="match-row">
+          <div class="mr-time">
+            <div class="mr-time-main">
+              <span>${timeView.main}</span>
+              <span class="match-status-live">FT</span>
+            </div>
+            <div class="mr-time-sub">${timeView.sub}</div>
+          </div>
+          <div class="mr-team home">
+            <span>${m.homeTeam}</span>
+            <img src="${m.homeLogo || 'assets/default.png'}" alt="${m.homeTeam}" onerror="this.style.display='none'">
+          </div>
+          <div class="mr-score has-score"><span class="mr-score-value">${m.score}</span></div>
+          <div class="mr-team away">
+            <img src="${m.awayLogo || 'assets/default.png'}" alt="${m.awayTeam}" onerror="this.style.display='none'">
+            <span>${m.awayTeam}</span>
+          </div>
+          <button class="fav-btn ${isFav ? 'active' : ''}" data-action="toggle-favorite" data-match="${mCode}" aria-label="${isFav ? 'Bỏ khỏi yêu thích' : 'Thêm vào yêu thích'}" title="Thêm vào yêu thích">
+            <i class="fas fa-star"></i>
+          </button>
+        </div>
+      `;
+    });
+    elements.matchesWrapper.innerHTML = html;
+    return;
+  }
+
   if (filtered.length === 0) {
     const dateLabel = describeDateFilter(state.dateFilter);
     const hint = dateLabel
@@ -293,6 +409,7 @@ export function renderMatchesList({ state, elements }) {
   let html = '';
 
   filtered.forEach((m) => {
+    const timeView = splitTimeDisplay(m);
     const groupTitle = `${m.league} &bull; ${m.round} &bull; ${m.date}`;
     if (groupTitle !== currentGroup) {
       html += `
@@ -309,8 +426,17 @@ export function renderMatchesList({ state, elements }) {
     html += `
       <div class="match-row">
         <div class="mr-time">
-          ${m.time}
-          ${(m.status || '') === 'live' ? '<span class="match-status-live">Đang phát</span>' : ''}
+          <div class="mr-time-main">
+            <span>${timeView.main}</span>
+            ${
+              (m.status || '') === 'live'
+                ? '<span class="match-status-live">Đang phát</span>'
+                : (m.status || '') === 'finished'
+                  ? '<span class="match-status-live">FT</span>'
+                  : ''
+            }
+          </div>
+          <div class="mr-time-sub">${timeView.sub}</div>
         </div>
         <div class="mr-team home">
           <span>${m.homeTeam}</span>

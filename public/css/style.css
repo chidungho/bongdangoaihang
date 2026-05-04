@@ -1002,11 +1002,23 @@ button {
 .match-row:hover {
   background: var(--hover-card);
 }
+
 .mr-time {
   font-size: var(--text-meta);
   color: var(--text-gray);
   font-weight: 500;
   line-height: 1.4;
+}
+
+.mr-time-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mr-time-sub {
+  margin-top: 2px;
+  color: color-mix(in srgb, var(--text-gray) 86%, #fff 14%);
 }
 
 .match-status-live {

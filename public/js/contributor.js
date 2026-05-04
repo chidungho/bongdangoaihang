@@ -1,5 +1,6 @@
 const $ = (id) => document.getElementById(id);
 const tokenKey = 'bdnh_contributor_token';
+const refreshTokenKey = 'bdnh_contributor_refresh_token';
 let token = localStorage.getItem(tokenKey) || '';
 let editor = null;
 
@@ -19,8 +20,13 @@ function showLogin() {
 }
 
 function logout() {
+  fetch('/api/auth/logout', {
+    method: 'POST',
+    headers: token ? authHeaders() : { 'Content-Type': 'application/json' },
+  }).catch(() => {});
   token = '';
   localStorage.removeItem(tokenKey);
+  localStorage.removeItem(refreshTokenKey);
   showLogin();
 }
 
@@ -51,6 +57,7 @@ async function login() {
   if (data.user.role !== 'contributor') throw new Error('Trang này chỉ dành cho tài khoản cộng tác viên.');
   token = data.token;
   localStorage.setItem(tokenKey, token);
+  if (data.refreshToken) localStorage.setItem(refreshTokenKey, data.refreshToken);
   showDashboard();
   switchTab('overview');
   await loadPosts();

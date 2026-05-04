@@ -21,6 +21,7 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^8.23.0",
     "puppeteer": "^24.42.0",
+    "redis": "^5.8.2",
     "slugify": "^1.6.6"
   },
   "devDependencies": {

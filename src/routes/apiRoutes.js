@@ -2,9 +2,10 @@ const express = require("express");
 const rateLimit = require("express-rate-limit");
 const env = require("../config/env");
 const { listMatches } = require("../controllers/matchController");
+const { listRecentScores } = require("../controllers/scoreController");
 const { listStandings } = require("../controllers/standingsController");
-const { getHealth } = require("../controllers/healthController");
-const { login } = require("../controllers/authController");
+const { getHealth, getLiveness, getReadiness } = require("../controllers/healthController");
+const { login, refresh, logout } = require("../controllers/authController");
 const {
   listPublicPosts,
   getPublicPost,
@@ -26,10 +27,15 @@ const authLimiter = rateLimit({
 });
 
 router.get("/health", getHealth);
+router.get("/health/live", getLiveness);
+router.get("/health/ready", getReadiness);
 router.get("/matches", listMatches);
+router.get("/scores", listRecentScores);
 router.get("/standings", listStandings);
 
 router.post("/auth/login", authLimiter, login);
+router.post("/auth/refresh", authLimiter, refresh);
+router.post("/auth/logout", requireAuth, logout);
 
 router.get("/blog/posts", listPublicPosts);
 router.get("/blog/posts/:slug", getPublicPost);

@@ -3,6 +3,16 @@ const path = require("path");
 const env = require("../config/env");
 
 const fixturesPath = path.join(env.rootDir, "data", "ingestion", "all_leagues_fixtures.json");
+const TEAM_ALIASES = {
+  "man utd": "Manchester United",
+  "man united": "Manchester United",
+  "man city": "Manchester City",
+  spurs: "Tottenham Hotspur",
+  "tottenham": "Tottenham Hotspur",
+  "newcastle utd": "Newcastle United",
+  wolves: "Wolverhampton Wanderers",
+  brighton: "Brighton & Hove Albion",
+};
 
 function normalizeLeagueName(value) {
   const raw = String(value || "").trim();
@@ -40,6 +50,38 @@ function readFixtureRows() {
   }
 }
 
+function normalizeTeamName(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "Unknown";
+  const key = raw.toLowerCase();
+  return TEAM_ALIASES[key] || raw;
+}
+
+function dedupeFixtureRows(rows) {
+  const seen = new Map();
+  for (const row of rows) {
+    const key = [
+      normalizeLeagueName(row?.league || ""),
+      String(row?.date || "").trim(),
+      normalizeTeamName(row?.homeTeam || ""),
+      normalizeTeamName(row?.awayTeam || ""),
+    ]
+      .join("|")
+      .toLowerCase();
+    const prev = seen.get(key);
+    if (!prev) {
+      seen.set(key, row);
+      continue;
+    }
+    const prevHasScore = Boolean(parseScore(prev?.score));
+    const currHasScore = Boolean(parseScore(row?.score));
+    if (currHasScore && !prevHasScore) {
+      seen.set(key, row);
+    }
+  }
+  return Array.from(seen.values());
+}
+
 function parseScore(score) {
   const value = String(score || "").trim();
   const match = value.match(/(\d+)\s*-\s*(\d+)/);
@@ -71,6 +113,14 @@ function inUpcomingWindow(rowDate) {
   return rowDate >= start && rowDate < end;
 }
 
+function inRecentScoreWindow(rowDate) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const start = new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000);
+  const end = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+  return rowDate >= start && rowDate < end;
+}
+
 function normalizeFixtureMatch(row, idx) {
   const parsedScore = parseScore(row?.score);
   const hasScore = parsedScore && Number.isInteger(parsedScore.home) && Number.isInteger(parsedScore.away);
@@ -84,16 +134,20 @@ function normalizeFixtureMatch(row, idx) {
     matchTime: String(row?.time || ""),
     status: hasScore ? "finished" : "upcoming",
     score: hasScore ? `${parsedScore.home} - ${parsedScore.away}` : "",
-    homeTeam: String(row?.homeTeam || "Unknown"),
-    awayTeam: String(row?.awayTeam || "Unknown"),
+    homeTeam: normalizeTeamName(row?.homeTeam || "Unknown"),
+    awayTeam: normalizeTeamName(row?.awayTeam || "Unknown"),
     homeLogo: String(row?.homeLogo || ""),
     awayLogo: String(row?.awayLogo || ""),
+    scorers: Array.isArray(row?.scorers) ? row.scorers : [],
+    yellowCards: Array.isArray(row?.yellowCards) ? row.yellowCards : [],
+    redCards: Array.isArray(row?.redCards) ? row.redCards : [],
+    hasDetailEvents: Boolean(row?.hasDetailEvents),
     venue: "",
   };
 }
 
 function buildMatchesFromFixtures() {
-  return readFixtureRows()
+  return dedupeFixtureRows(readFixtureRows())
     .filter((row) => {
       const d = parseFixtureDate(row?.date);
       return d && inUpcomingWindow(d);
@@ -103,7 +157,7 @@ function buildMatchesFromFixtures() {
 }
 
 function buildStandingsFromFixtures() {
-  const rows = readFixtureRows();
+  const rows = dedupeFixtureRows(readFixtureRows());
   const byLeague = new Map();
 
   for (const row of rows) {
@@ -196,7 +250,20 @@ function buildStandingsFromFixtures() {
   return result;
 }
 
+function buildRecentScoresFromFixtures() {
+  return dedupeFixtureRows(readFixtureRows())
+    .filter((row) => {
+      const d = parseFixtureDate(row?.date);
+      if (!d || !inRecentScoreWindow(d)) return false;
+      return Boolean(parseScore(row?.score));
+    })
+    .map(normalizeFixtureMatch)
+    .map((match) => ({ ...match, status: "finished" }))
+    .filter((m) => m.homeTeam && m.awayTeam);
+}
+
 module.exports = {
   buildMatchesFromFixtures,
   buildStandingsFromFixtures,
+  buildRecentScoresFromFixtures,
 };

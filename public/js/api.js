@@ -71,6 +71,11 @@ function normalizeMatchesPayload(payload) {
   return rawList.map(normalizeMatch).filter((m) => m.homeTeam && m.awayTeam);
 }
 
+function normalizeScoresPayload(payload) {
+  const rawList = Array.isArray(payload) ? payload : Array.isArray(payload?.data) ? payload.data : [];
+  return rawList.map(normalizeMatch).filter((m) => m.homeTeam && m.awayTeam);
+}
+
 export async function fetchMatches() {
   const { matchesApi, matchesMock } = APP_CONFIG.endpoints;
   const mode = APP_CONFIG.dataSource;
@@ -116,4 +121,9 @@ export async function fetchStandings() {
   } catch {
     return normalizeStandingsPayload(await fetchJson(standingsMock));
   }
+}
+
+export async function fetchScores() {
+  const { scoresApi } = APP_CONFIG.endpoints;
+  return normalizeScoresPayload(await fetchJson(scoresApi));
 }

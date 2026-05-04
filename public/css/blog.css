@@ -215,6 +215,7 @@ body.magazine {
   grid-template-columns: minmax(150px, 220px) minmax(0, 1200px) minmax(150px, 220px);
   gap: 22px;
   align-items: start;
+  min-height: calc(100vh - 150px);
 }
 
 .news-main-content {

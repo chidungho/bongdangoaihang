@@ -1,5 +1,7 @@
 const crypto = require("crypto");
 const env = require("../config/env");
+const logger = require("../utils/logger");
+const { recordRequest } = require("../services/metricsService");
 
 function requestContext(req, res, next) {
   const requestId = crypto.randomUUID();
@@ -7,9 +9,16 @@ function requestContext(req, res, next) {
   res.setHeader("X-Request-Id", requestId);
   const startedAt = Date.now();
   res.on("finish", () => {
-    if (!env.requestLogEnabled) return;
     const elapsed = Date.now() - startedAt;
-    console.info(`[${requestId}] ${req.method} ${req.originalUrl} -> ${res.statusCode} (${elapsed}ms)`);
+    recordRequest(req.originalUrl, res.statusCode, elapsed);
+    if (!env.requestLogEnabled) return;
+    logger.info("request_complete", {
+      requestId,
+      method: req.method,
+      url: req.originalUrl,
+      statusCode: res.statusCode,
+      elapsedMs: elapsed,
+    });
   });
   next();
 }

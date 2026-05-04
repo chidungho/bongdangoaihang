@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const env = require("../config/env");
+const { sanitizeHttpUrl } = require("../utils/sanitize");
 
 const bannerFilePath = path.join(env.rootDir, "data", "footer-banner.json");
 
@@ -24,8 +25,8 @@ function readFooterBanner() {
     const raw = fs.readFileSync(bannerFilePath, "utf-8");
     const parsed = JSON.parse(raw);
     return {
-      imageUrl: String(parsed?.imageUrl || DEFAULT_BANNER.imageUrl),
-      targetUrl: String(parsed?.targetUrl || DEFAULT_BANNER.targetUrl),
+      imageUrl: sanitizeHttpUrl(parsed?.imageUrl || DEFAULT_BANNER.imageUrl, DEFAULT_BANNER.imageUrl),
+      targetUrl: sanitizeHttpUrl(parsed?.targetUrl || DEFAULT_BANNER.targetUrl, DEFAULT_BANNER.targetUrl),
     };
   } catch (error) {
     return { ...DEFAULT_BANNER };
@@ -35,8 +36,8 @@ function readFooterBanner() {
 function saveFooterBanner(input) {
   ensureFile();
   const normalized = {
-    imageUrl: String(input?.imageUrl || "").trim(),
-    targetUrl: String(input?.targetUrl || "#").trim(),
+    imageUrl: sanitizeHttpUrl(input?.imageUrl || "", ""),
+    targetUrl: sanitizeHttpUrl(input?.targetUrl || "#", "#"),
   };
   fs.writeFileSync(bannerFilePath, JSON.stringify(normalized, null, 2), "utf-8");
   return normalized;

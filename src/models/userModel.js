@@ -7,6 +7,9 @@ const userSchema = new mongoose.Schema(
     passwordHash: { type: String, required: true },
     role: { type: String, enum: ["admin", "contributor"], default: "contributor" },
     isActive: { type: Boolean, default: true },
+    tokenVersion: { type: Number, default: 0 },
+    refreshTokenHash: { type: String, default: "" },
+    refreshTokenExpiresAt: { type: Date, default: null },
   },
   { timestamps: true },
 );

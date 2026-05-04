@@ -2,6 +2,80 @@ const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
 
+const DETAIL_ENRICH_MAX_MATCHES = 0;
+const DETAIL_LOOKBACK_DAYS = 7;
+
+function parseFixtureDate(dateValue) {
+    const raw = String(dateValue || '').trim();
+    const m = raw.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+    if (!m) return null;
+    const d = new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]), 0, 0, 0, 0);
+    return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function shouldEnrichDetail(match) {
+    if (!match || !match.score || !match.detailUrl) return false;
+    const date = parseFixtureDate(match.date);
+    if (!date) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const start = new Date(today.getTime() - (DETAIL_LOOKBACK_DAYS - 1) * 24 * 60 * 60 * 1000);
+    return date >= start && date <= today;
+}
+
+async function scrapeMatchDetailEvents(page, detailUrl) {
+    try {
+        await page.goto(detailUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+        await page.waitForSelector('body', { timeout: 6000 });
+        return await page.evaluate(() => {
+            const compactText = (value) => String(value || '').replace(/\s+/g, ' ').trim();
+            const nodes = Array.from(
+                document.querySelectorAll(
+                    '.match-event li, .match-events li, .timeline li, .event-item, .match-detail-event li, .match-stat li, .list-event li, li'
+                )
+            );
+
+            const rawEvents = [];
+            const minutePattern = /\b\d{1,3}(?:\+\d{1,2})?\s*['’`]\b/;
+            nodes.forEach((node) => {
+                const text = compactText(node.innerText || node.textContent || '');
+                if (!text) return;
+                if (text.length > 140) return;
+                if (!/thẻ|bàn thắng|goal|pen|phản lưới|yellow|red/i.test(text)) return;
+                if (!minutePattern.test(text)) return;
+                rawEvents.push(text);
+            });
+
+            const yellowCards = [];
+            const redCards = [];
+            const scorers = [];
+
+            rawEvents.forEach((line) => {
+                const lower = line.toLowerCase();
+                if (/thẻ vàng|yellow/i.test(lower)) yellowCards.push(line);
+                else if (/thẻ đỏ|red/i.test(lower)) redCards.push(line);
+                else if (/bàn thắng|goal|pen|phản lưới/i.test(lower)) scorers.push(line);
+            });
+
+            return {
+                scorers,
+                yellowCards,
+                redCards,
+                hasDetailEvents: rawEvents.length > 0,
+                rawEvents,
+            };
+        });
+    } catch (error) {
+        return {
+            scorers: [],
+            yellowCards: [],
+            redCards: [],
+            hasDetailEvents: false,
+            rawEvents: [],
+        };
+    }
+}
+
 async function scrapeAllLeagues() {
   const startUrl = 'https://www.24h.com.vn/bong-da/lich-thi-dau-bong-da-hom-nay-moi-nhat-c48a364371.html';
   
@@ -118,6 +192,7 @@ async function scrapeAllLeagues() {
                              
                              let homeLogo = li.querySelector('.cate-24h-foot-home-sche-content__match--left img')?.getAttribute('src') || '';
                              let awayLogo = li.querySelector('.cate-24h-foot-home-sche-content__match--right img')?.getAttribute('src') || '';
+                            const detailUrl = li.querySelector('a[href*="bong-da"], a[href*="tran-dau"], a[href*="match"]')?.href || '';
                              
                              const scoreA = li.querySelector('.match-fs_a')?.innerText.trim() || '';
                              const scoreB = li.querySelector('.match-fs_b')?.innerText.trim() || '';
@@ -141,7 +216,12 @@ async function scrapeAllLeagues() {
                                  homeTeam: homeTeam || 'Unknown',
                                  awayTeam: awayTeam || 'Unknown',
                                  homeLogo: homeLogo,
-                                 awayLogo: awayLogo
+                                 awayLogo: awayLogo,
+                                 detailUrl,
+                                 scorers: [],
+                                 yellowCards: [],
+                                 redCards: [],
+                                 hasDetailEvents: false
                              });
                          });
                     });
@@ -181,6 +261,7 @@ async function scrapeAllLeagues() {
 
                                 let homeLogo = homeEl?.querySelector('img')?.getAttribute('data-src') || homeEl?.querySelector('img')?.getAttribute('src');
                                 let awayLogo = awayEl?.querySelector('img')?.getAttribute('data-src') || awayEl?.querySelector('img')?.getAttribute('src');
+                                const detailUrl = li.querySelector('a[href*="bong-da"], a[href*="tran-dau"], a[href*="match"]')?.href || '';
 
                                 const scoreA = li.querySelector('.match-fs_a')?.innerText.trim();
                                 const scoreB = li.querySelector('.match-fs_b')?.innerText.trim();
@@ -200,7 +281,12 @@ async function scrapeAllLeagues() {
                                     homeTeam: homeTeam || 'Unknown',
                                     awayTeam: awayTeam || 'Unknown',
                                     homeLogo: homeLogo || '',
-                                    awayLogo: awayLogo || ''
+                                    awayLogo: awayLogo || '',
+                                    detailUrl,
+                                    scorers: [],
+                                    yellowCards: [],
+                                    redCards: [],
+                                    hasDetailEvents: false
                                 });
                             });
                         });
@@ -222,6 +308,26 @@ async function scrapeAllLeagues() {
         } catch (error) {
             console.error(`   ❌ Lỗi khi scrape ${league.name}:`, error.message);
         }
+    }
+
+    const detailCandidates = allMatches.filter(shouldEnrichDetail).slice(0, DETAIL_ENRICH_MAX_MATCHES);
+    if (detailCandidates.length) {
+        console.log(`\n🧩 Mở rộng dữ liệu sự kiện trận đấu (ghi bàn/thẻ): ${detailCandidates.length} trận`);
+        const detailPage = await browser.newPage();
+        for (let idx = 0; idx < detailCandidates.length; idx += 1) {
+            const match = detailCandidates[idx];
+            const events = await scrapeMatchDetailEvents(detailPage, match.detailUrl);
+            match.scorers = events.scorers;
+            match.yellowCards = events.yellowCards;
+            match.redCards = events.redCards;
+            match.hasDetailEvents = events.hasDetailEvents;
+            if ((idx + 1) % 20 === 0 || idx === detailCandidates.length - 1) {
+                console.log(`   ↳ Đã xử lý sự kiện: ${idx + 1}/${detailCandidates.length}`);
+            }
+        }
+        await detailPage.close();
+    } else {
+        console.log(`\n🧩 Không có trận phù hợp để mở rộng dữ liệu sự kiện.`);
     }
 
     // Export output in JSON format

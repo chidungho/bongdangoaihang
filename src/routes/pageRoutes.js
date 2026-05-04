@@ -21,5 +21,6 @@ router.get(env.contributorPath, contributorPage);
 router.get("/live/:slug?", homePage);
 router.get("/lich-dau/:slug?", homePage);
 router.get("/bxh/:slug?", homePage);
+router.get("/ti-so/:slug?", homePage);
 
 module.exports = router;

@@ -1,5 +1,6 @@
-const { getLastScrapeTime } = require("../services/matchService");
+const { getLastScrapeTime, getCrawlerStatus } = require("../services/matchService");
 const { isBlogReady } = require("../services/mongoService");
+const { getMetricsSummary } = require("../services/metricsService");
 
 function getHealth(req, res) {
   res.json({
@@ -11,4 +12,26 @@ function getHealth(req, res) {
   });
 }
 
-module.exports = { getHealth };
+function getLiveness(req, res) {
+  res.json({
+    status: "alive",
+    now: new Date().toISOString(),
+  });
+}
+
+function getReadiness(req, res) {
+  const crawler = getCrawlerStatus();
+  const blogReady = isBlogReady();
+  const scraperReady = Boolean(crawler?.lastSuccess) || Boolean(getLastScrapeTime());
+  const ready = blogReady && scraperReady;
+  res.status(ready ? 200 : 503).json({
+    status: ready ? "ready" : "degraded",
+    blogReady,
+    scraperReady,
+    crawler,
+    metrics: getMetricsSummary(),
+    now: new Date().toISOString(),
+  });
+}
+
+module.exports = { getHealth, getLiveness, getReadiness };
