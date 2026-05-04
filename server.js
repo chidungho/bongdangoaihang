@@ -1,6 +1,6 @@
 const env = require("./src/config/env");
 const { createApp } = require("./src/app");
-const { connectMongo, seedAdminAccount, seedBlogPostsIfNeeded } = require("./src/services/mongoService");
+const { connectMongo, seedAdminAccount } = require("./src/services/mongoService");
 const { initializeMatchCache } = require("./src/services/matchService");
 
 const app = createApp();
@@ -10,7 +10,6 @@ async function bootstrap() {
     const connected = await connectMongo();
     if (connected) {
       await seedAdminAccount();
-      await seedBlogPostsIfNeeded();
       console.info("[BOOT] MongoDB connected");
     } else {
       console.warn("[BOOT] MONGODB_URI missing, blog module disabled");
