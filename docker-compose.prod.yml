@@ -6,4 +6,19 @@ services:
       - "3000:3000"
     env_file:
       - .env
+    environment:
+      - TRUST_PROXY=${TRUST_PROXY:-1}
+      - MONGODB_URI=${MONGODB_URI:-mongodb://mongodb:27017/bongdangoaihang}
+    depends_on:
+      - mongodb
     restart: unless-stopped
+
+  mongodb:
+    image: mongo:7
+    container_name: bongdangoaihang-mongo
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:

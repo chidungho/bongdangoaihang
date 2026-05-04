@@ -15,6 +15,7 @@ function createApp() {
   const staticOpts = { etag: true, maxAge: "1h" };
 
   app.disable("x-powered-by");
+  app.set("trust proxy", env.trustProxy);
   app.use(
     helmet({
       contentSecurityPolicy: {

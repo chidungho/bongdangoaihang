@@ -16,6 +16,16 @@ const normalizeRoutePath = (raw, fallback) => {
   return value.startsWith("/") ? value : `/${value}`;
 };
 
+const parseTrustProxy = (raw) => {
+  const value = String(raw ?? "").trim().toLowerCase();
+  if (!value) return false;
+  if (["1", "true", "yes", "on"].includes(value)) return 1;
+  if (["0", "false", "no", "off"].includes(value)) return false;
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isNaN(parsed)) return parsed;
+  return value;
+};
+
 module.exports = {
   nodeEnv: process.env.NODE_ENV || "development",
   rootDir,
@@ -47,6 +57,7 @@ module.exports = {
   footballDataCacheTtlMs: toInt(process.env.FOOTBALL_DATA_CACHE_TTL_MS, 60000),
   siteBaseUrl: String(process.env.SITE_BASE_URL || "http://localhost:3000").replace(/\/+$/, ""),
   requestLogEnabled: String(process.env.REQUEST_LOG_ENABLED || "true").toLowerCase() !== "false",
+  trustProxy: parseTrustProxy(process.env.TRUST_PROXY),
   rateLimitWindowMs: toInt(process.env.RATE_LIMIT_WINDOW_MS, 900000),
   rateLimitMax: toInt(process.env.RATE_LIMIT_MAX, 200),
   authRateLimitMax: toInt(process.env.AUTH_RATE_LIMIT_MAX, 15),

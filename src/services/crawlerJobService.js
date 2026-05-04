@@ -118,7 +118,13 @@ async function runCrawlerJob({ timeoutMs = 15 * 60 * 1000 } = {}) {
         await executeCrawlerOnce(timeoutMs);
         const durationMs = Date.now() - startedAt;
         const rows = readRowsCount();
+        if (rows <= 0) {
+          throw new Error(`Crawler output is empty at ${fixturesPath}`);
+        }
         const snapshotPath = saveSnapshot();
+        if (!snapshotPath) {
+          throw new Error(`Snapshot save failed for ${fixturesPath}`);
+        }
         status = {
           ...status,
           running: false,
@@ -131,13 +137,20 @@ async function runCrawlerJob({ timeoutMs = 15 * 60 * 1000 } = {}) {
         };
         writeStatus(status);
         recordCrawlerRun({ ok: true, durationMs, rows });
-        logger.info("crawler_success", { durationMs, rows, attempt, snapshotPath });
+        logger.info("crawler_success", {
+          durationMs,
+          rows,
+          attempt,
+          snapshotPath,
+          fixturesPath,
+        });
         return { ok: true, durationMs, rows, attempt };
       } catch (error) {
         lastError = error;
         logger.warn("crawler_attempt_failed", {
           attempt,
           error: error.message,
+          fixturesPath,
         });
         if (attempt < MAX_RETRIES) {
           const backoff = BASE_BACKOFF_MS * Math.pow(2, attempt - 1);
