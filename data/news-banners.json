@@ -1,0 +1,14 @@
+[
+  {
+    "id": "banner1",
+    "title": "Banner 1",
+    "imageUrl": "https://adtima-media.zascdn.me/2026/04/30/df5790c7-51e9-4fb1-af3e-d71d79a10b7e.jpg",
+    "targetUrl": "https://bongdangoaihang.com"
+  },
+  {
+    "id": "banner2",
+    "title": "Banner 2",
+    "imageUrl": "https://adtima-media.zascdn.me/2026/04/30/df5790c7-51e9-4fb1-af3e-d71d79a10b7e.jpg",
+    "targetUrl": "https://bongdangoaihang.com/tin-tuc"
+  }
+]

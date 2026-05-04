@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Blog | Bóng Đá Ngoại Hạng</title>
+    <link rel="stylesheet" href="/css/blog.css" />
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet" />
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+    <link rel="apple-touch-icon" href="/assets/apple-touch-icon.svg" />
+    <meta name="theme-color" content="#0b1220" />
+  </head>
+  <body>
+    <div class="blog-wrap">
+      <div class="blog-topbar">
+        <a class="brand-link" href="/">Bóng Đá Ngoại Hạng</a>
+        <div class="top-actions">
+          <a href="/tin-tuc">Trang tin tức</a>
+          <a href="#" id="logoutBtn">Đăng xuất</a>
+        </div>
+      </div>
+
+      <section id="loginPanel" class="panel auth-panel">
+        <div class="auth-badge">System Administration</div>
+        <h2>Đăng nhập quản trị</h2>
+        <p class="auth-subtitle">Truy cập khu vực quản trị hệ thống và quản lý nội dung blog.</p>
+        <div class="auth-form">
+          <label class="auth-label" for="email">Email quản trị</label>
+          <input id="email" type="email" autocomplete="username" placeholder="admin@bongdangoaihang.com" />
+          <label class="auth-label" for="password">Mật khẩu</label>
+          <input id="password" type="password" autocomplete="current-password" placeholder="Nhập mật khẩu" />
+          <button id="loginBtn" class="auth-submit">Đăng nhập</button>
+        </div>
+      </section>
+
+      <section id="dashboard" class="hidden">
+        <div class="admin-layout">
+          <div class="admin-content">
+            <section id="overviewSection">
+              <div class="panel">
+                <h2>Tổng quan hệ thống</h2>
+                <div class="stats-grid">
+                  <div class="stat-card"><div>Tổng bài viết</div><strong id="statTotal">0</strong></div>
+                  <div class="stat-card"><div>Đã xuất bản</div><strong id="statPublished">0</strong></div>
+                  <div class="stat-card"><div>Chờ duyệt</div><strong id="statPending">0</strong></div>
+                  <div class="stat-card"><div>Bản nháp</div><strong id="statDraft">0</strong></div>
+                </div>
+              </div>
+              <div class="panel" style="margin-top: 16px;">
+                <h2>Banner quảng cáo trang Tin Tức</h2>
+                <p class="auth-subtitle">
+                  Kích thước khuyến nghị desktop: 220×440 px mỗi banner (trái/phải). Dán link ảnh và link chuyển trang bên dưới.
+                </p>
+                <div class="row">
+                  <input id="banner1Image" placeholder="Banner trái - URL ảnh" />
+                  <input id="banner1Link" placeholder="Banner trái - URL đích" />
+                </div>
+                <div class="row" style="margin-top: 10px;">
+                  <input id="banner2Image" placeholder="Banner phải - URL ảnh" />
+                  <input id="banner2Link" placeholder="Banner phải - URL đích" />
+                </div>
+                <div class="row" style="margin-top: 10px;">
+                  <button id="saveBannersBtn">Lưu banner</button>
+                </div>
+                <hr style="border-color: rgba(255,255,255,0.12); margin: 14px 0;" />
+                <p class="auth-subtitle">
+                  Banner footer giữa trang chủ (khuyến nghị: 640×200 px).
+                </p>
+                <div class="row">
+                  <input id="footerBannerImage" placeholder="Footer banner - URL ảnh" />
+                  <input id="footerBannerLink" placeholder="Footer banner - URL đích" />
+                </div>
+                <div class="row" style="margin-top: 10px;">
+                  <button id="saveFooterBannerBtn">Lưu banner footer</button>
+                </div>
+              </div>
+            </section>
+
+            <section id="usersSection" class="hidden">
+              <div class="panel" style="margin-top: 16px;">
+                <h2>Quản lý tài khoản hệ thống</h2>
+                <div class="row">
+                  <input id="newUserName" placeholder="Họ và tên" />
+                  <input id="newUserEmail" placeholder="Email đăng nhập" />
+                  <input id="newUserPassword" type="password" placeholder="Mật khẩu (>=6 ký tự)" />
+                  <select id="newUserRole">
+                    <option value="contributor">Cộng tác viên</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                  <button id="createUserBtn">Tạo tài khoản</button>
+                </div>
+                <table>
+                  <thead>
+                    <tr><th>Tên</th><th>Email</th><th>Vai trò</th><th>Trạng thái</th><th>Hành động</th></tr>
+                  </thead>
+                  <tbody id="userRows"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <section id="moderationSection" class="hidden">
+              <div class="panel">
+                <h2>Duyệt bài viết</h2>
+                <div class="row">
+                  <select id="moderationStatusFilter">
+                    <option value="pending">Chờ duyệt</option>
+                    <option value="draft">Nháp</option>
+                    <option value="published">Đã xuất bản</option>
+                    <option value="all">Tất cả</option>
+                  </select>
+                  <input id="moderationSearch" placeholder="Tìm theo tiêu đề hoặc tác giả" />
+                  <button id="reloadModerationBtn">Làm mới</button>
+                </div>
+                <table>
+                  <thead><tr><th>Tiêu đề</th><th>Tác giả</th><th>Trạng thái</th><th>Cập nhật</th><th>Duyệt</th></tr></thead>
+                  <tbody id="moderationRows"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <section id="blogSection" class="hidden">
+              <div class="panel">
+                <h2>Soạn và xuất bản blog</h2>
+                <div class="row">
+                  <input id="title" placeholder="Tiêu đề bài viết" />
+                  <input id="slug" placeholder="Slug URL (tuỳ chọn)" />
+                  <input id="coverImage" placeholder="URL ảnh cover" />
+                  <input id="category" placeholder="Chuyên mục" value="Tin tức" />
+                  <input id="tags" placeholder="Tags, cách nhau dấu phẩy" />
+                  <textarea id="excerpt" placeholder="Mô tả ngắn"></textarea>
+                </div>
+                <div id="editor" style="height: 280px; background: #fff; color: #111; margin-top: 10px;"></div>
+                <div class="row" style="margin-top: 12px;">
+                  <select id="status">
+                    <option value="draft">Nháp</option>
+                    <option value="pending">Chờ duyệt</option>
+                    <option value="published">Xuất bản</option>
+                  </select>
+                  <button id="saveBtn">Lưu bài viết</button>
+                </div>
+              </div>
+
+              <div class="panel" style="margin-top: 16px;">
+                <h2>Quản lý bài viết</h2>
+                <table>
+                  <thead><tr><th>Tiêu đề</th><th>Trạng thái</th><th>Tác giả</th><th>Cập nhật</th><th>Hành động</th></tr></thead>
+                  <tbody id="postRows"></tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+
+          <aside class="panel admin-sidebar-right">
+            <div class="admin-sidebar-title">Quản trị hệ thống</div>
+            <div class="admin-tabs admin-tabs-vertical">
+              <button id="tabOverview" class="admin-tab active" type="button">Tổng quan</button>
+              <button id="tabUsers" class="admin-tab" type="button">Quản lý tài khoản</button>
+              <button id="tabModeration" class="admin-tab" type="button">Duyệt bài viết</button>
+              <button id="tabBlog" class="admin-tab" type="button">Quản trị blog</button>
+            </div>
+          </aside>
+        </div>
+      </section>
+    </div>
+
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script type="module" src="/js/admin.js"></script>
+  </body>
+  </html>
