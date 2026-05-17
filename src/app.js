@@ -82,4 +82,24 @@ function createApp() {
   return app;
 }
 
-module.exports = { createApp };
+let fallbackApp = null;
+let fallbackReady = null;
+
+async function defaultHandler(req, res) {
+  if (!fallbackApp) {
+    fallbackApp = createApp();
+  }
+
+  if (process.env.VERCEL) {
+    if (!fallbackReady) {
+      const { bootstrapRuntime } = require("./bootstrap");
+      fallbackReady = bootstrapRuntime({ runIngestion: false, startTimers: false });
+    }
+    await fallbackReady;
+  }
+
+  return fallbackApp(req, res);
+}
+
+module.exports = defaultHandler;
+module.exports.createApp = createApp;
