@@ -12,6 +12,12 @@ test("Vercel routes all requests to the serverless API handler", () => {
     {
       src: "api/index.js",
       use: "@vercel/node",
+      config: {
+        includeFiles: [
+          "public/**",
+          "data/**/*.json",
+        ],
+      },
     },
   ]);
   assert.deepEqual(config.routes, [
