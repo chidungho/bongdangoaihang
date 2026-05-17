@@ -1,0 +1,14 @@
+node_modules/
+npm-debug.log*
+.npm/
+
+.vercel/
+
+.env.local
+.env.*.local
+
+.vs/
+terminals/
+agent-transcripts/
+
+.vercel

@@ -1,7 +1,9 @@
 const path = require("path");
 const dotenv = require("dotenv");
 
-dotenv.config();
+if (!process.env.VERCEL) {
+  dotenv.config();
+}
 
 const rootDir = path.resolve(__dirname, "..", "..");
 

@@ -100,12 +100,15 @@ function getLastScrapeTime() {
   return lastScrapeTime;
 }
 
-async function initializeMatchCache() {
+async function initializeMatchCache({
+  runIngestion = env.scrapeOnStartup && env.nodeEnv !== "development",
+  startTimers = process.env.NODE_ENV !== "test",
+} = {}) {
   matchesCache = buildMatchesFromFixtures();
-  if (env.scrapeOnStartup && env.nodeEnv !== "development") {
+  if (runIngestion) {
     await refreshMatchesCache({ runIngestion: true });
   }
-  if (!refreshTimer && process.env.NODE_ENV !== "test") {
+  if (startTimers && !refreshTimer) {
     refreshTimer = setInterval(() => {
       refreshMatchesCache({ runIngestion: true }).catch(() => null);
     }, env.scrapeIntervalMs);
@@ -113,7 +116,7 @@ async function initializeMatchCache() {
       refreshTimer.unref();
     }
   }
-  if (!autoScoreCrawlTimer && process.env.NODE_ENV !== "test" && env.nodeEnv !== "development") {
+  if (startTimers && !autoScoreCrawlTimer && env.nodeEnv !== "development") {
     autoScoreCrawlTimer = setInterval(maybeTriggerPostMatchIngestion, AUTO_CRAWL_CHECK_MS);
     if (typeof autoScoreCrawlTimer.unref === "function") {
       autoScoreCrawlTimer.unref();
