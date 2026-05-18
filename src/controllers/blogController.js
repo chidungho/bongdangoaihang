@@ -1,11 +1,19 @@
 const slugify = require("slugify");
 const BlogPost = require("../models/blogPostModel");
-const { isBlogReady } = require("../services/mongoService");
+const { ensureBlogReady } = require("../services/mongoService");
 
-function ensureBlogReady(res) {
-  if (isBlogReady()) return true;
+async function ensureBlogAvailable(res) {
+  try {
+    if (await ensureBlogReady()) return true;
+  } catch {
+    // Return the stable public API error below.
+  }
   res.status(503).json({ error: "Blog system unavailable" });
   return false;
+}
+
+function setPublicBlogCache(res) {
+  res.set("Cache-Control", "public, max-age=60, s-maxage=120, stale-while-revalidate=300");
 }
 
 function toSlug(title) {
@@ -13,30 +21,32 @@ function toSlug(title) {
 }
 
 async function listPublicPosts(req, res) {
-  if (!ensureBlogReady(res)) return;
+  if (!(await ensureBlogAvailable(res))) return;
   const posts = await BlogPost.find({ status: "published" })
     .sort({ publishedAt: -1, createdAt: -1 })
     .limit(50)
     .lean();
+  setPublicBlogCache(res);
   res.json({ data: posts });
 }
 
 async function getPublicPost(req, res) {
-  if (!ensureBlogReady(res)) return;
+  if (!(await ensureBlogAvailable(res))) return;
   const post = await BlogPost.findOne({ slug: req.params.slug, status: "published" }).lean();
   if (!post) return res.status(404).json({ error: "Post not found" });
+  setPublicBlogCache(res);
   res.json({ data: post });
 }
 
 async function listMyPosts(req, res) {
-  if (!ensureBlogReady(res)) return;
+  if (!(await ensureBlogAvailable(res))) return;
   const filter = req.user.role === "admin" ? {} : { authorId: req.user._id };
   const posts = await BlogPost.find(filter).sort({ updatedAt: -1 }).limit(200).lean();
   res.json({ data: posts });
 }
 
 async function createPost(req, res) {
-  if (!ensureBlogReady(res)) return;
+  if (!(await ensureBlogAvailable(res))) return;
   const title = String(req.body?.title || "").trim();
   const contentHtml = String(req.body?.contentHtml || "").trim();
   if (!title || !contentHtml) return res.status(400).json({ error: "Title and content are required" });
@@ -57,7 +67,7 @@ async function createPost(req, res) {
 }
 
 async function updatePost(req, res) {
-  if (!ensureBlogReady(res)) return;
+  if (!(await ensureBlogAvailable(res))) return;
   const post = await BlogPost.findById(req.params.id);
   if (!post) return res.status(404).json({ error: "Post not found" });
   if (req.user.role !== "admin" && String(post.authorId) !== String(req.user._id)) {
@@ -80,7 +90,7 @@ async function updatePost(req, res) {
 }
 
 async function deletePost(req, res) {
-  if (!ensureBlogReady(res)) return;
+  if (!(await ensureBlogAvailable(res))) return;
   const post = await BlogPost.findById(req.params.id);
   if (!post) return res.status(404).json({ error: "Post not found" });
   if (req.user.role !== "admin" && String(post.authorId) !== String(req.user._id)) {

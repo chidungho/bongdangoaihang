@@ -84,6 +84,11 @@ function createApp() {
 
 let fallbackApp = null;
 let fallbackReady = null;
+let fallbackReadyError = null;
+
+function needsRuntimeData(req) {
+  return String(req.url || "").startsWith("/api/matches");
+}
 
 async function defaultHandler(req, res) {
   if (!fallbackApp) {
@@ -93,9 +98,19 @@ async function defaultHandler(req, res) {
   if (process.env.VERCEL) {
     if (!fallbackReady) {
       const { bootstrapRuntime } = require("./bootstrap");
-      fallbackReady = bootstrapRuntime({ runIngestion: false, startTimers: false });
+      fallbackReady = bootstrapRuntime({
+        connectDatabase: false,
+        runIngestion: false,
+        startTimers: false,
+      }).catch((error) => {
+        fallbackReadyError = error;
+        logger.error("serverless_bootstrap_failed", { message: error.message });
+      });
     }
-    await fallbackReady;
+    if (needsRuntimeData(req)) {
+      await fallbackReady;
+      if (fallbackReadyError) throw fallbackReadyError;
+    }
   }
 
   return fallbackApp(req, res);

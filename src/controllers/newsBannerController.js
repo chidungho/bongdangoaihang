@@ -1,6 +1,11 @@
 const { readBanners, saveBanners } = require("../services/newsBannerService");
 
+function setPublicBannerCache(res) {
+  res.set("Cache-Control", "public, max-age=60, s-maxage=300, stale-while-revalidate=600");
+}
+
 function getNewsBanners(req, res) {
+  setPublicBannerCache(res);
   res.json({ data: readBanners() });
 }
 

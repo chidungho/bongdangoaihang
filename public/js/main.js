@@ -25,6 +25,8 @@ const state = {
   favorites: loadFavorites(),
   theme: loadTheme(),
   isLoading: true,
+  scoresLoaded: false,
+  scoresLoading: null,
 };
 
 const elements = {
@@ -299,13 +301,55 @@ async function loadMatchesAndRender() {
 }
 
 async function loadScoresAndRender() {
+  if (state.scoresLoaded) {
+    if (state.currentTab === "scores" || state.currentTab === "schedule") {
+      renderMatchesList(ctx);
+    }
+    return state.scores;
+  }
+  if (state.scoresLoading) return state.scoresLoading;
+  if (state.currentTab === "scores" && elements.matchesWrapper) {
+    elements.matchesWrapper.innerHTML = `
+      <div class="league-heading-sk sk-loader mt-4 mb-2"></div>
+      <div class="match-row-sk sk-loader mb-2"></div>
+      <div class="match-row-sk sk-loader mb-2"></div>
+    `;
+  }
+
+  state.scoresLoading = (async () => {
+    try {
+      state.scores = await fetchScores();
+      state.scoresLoaded = true;
+      if (state.currentTab === "scores" || state.currentTab === "schedule") {
+        renderMatchesList(ctx);
+      }
+      return state.scores;
+    } catch (e) {
+      console.error(e);
+      return state.scores;
+    } finally {
+      state.scoresLoading = null;
+    }
+  })();
+
+  return state.scoresLoading;
+}
+
+async function refreshScoresAndRender() {
   try {
     state.scores = await fetchScores();
+    state.scoresLoaded = true;
     if (state.currentTab === "scores" || state.currentTab === "schedule") {
       renderMatchesList(ctx);
     }
   } catch (e) {
     console.error(e);
+  }
+}
+
+function maybeLoadTabData(tab) {
+  if (tab === "scores" || tab === "schedule") {
+    loadScoresAndRender();
   }
 }
 
@@ -340,6 +384,14 @@ async function loadFooterBanner() {
   } catch (error) {
     linkEl.href = "#";
   }
+}
+
+function scheduleFooterBannerLoad() {
+  if ("requestIdleCallback" in window) {
+    window.requestIdleCallback(loadFooterBanner, { timeout: 3000 });
+    return;
+  }
+  window.setTimeout(loadFooterBanner, 1200);
 }
 
 function initNavbar() {
@@ -382,6 +434,7 @@ function initNavbar() {
       renderPrimaryViews();
       renderStandings(ctx);
       renderFullStandings(ctx);
+      maybeLoadTabData(tab);
       updateAppUrl(tab, state.selectedLeague, "push");
     });
   });
@@ -487,7 +540,7 @@ function initApp() {
   bindUiEvents(ctx);
 
   window.addEventListener("popstate", () => {
-    applyCurrentRoute();
+    maybeLoadTabData(applyCurrentRoute());
   });
 
   document.addEventListener("click", (e) => {
@@ -509,12 +562,16 @@ function initApp() {
   });
 
   loadMatchesAndRender();
-  loadScoresAndRender();
   loadStandingsAndRender();
-  loadFooterBanner();
+  maybeLoadTabData(currentTab);
+  scheduleFooterBannerLoad();
 
   setInterval(loadMatchesAndRender, APP_CONFIG.refreshMs);
-  setInterval(loadScoresAndRender, APP_CONFIG.refreshMs);
+  setInterval(() => {
+    if (state.scoresLoaded || state.currentTab === "scores" || state.currentTab === "schedule") {
+      refreshScoresAndRender();
+    }
+  }, APP_CONFIG.refreshMs);
   setInterval(() => {
     if (state.currentTab === "live") renderMatchesList(ctx);
   }, 900000);

@@ -1,10 +1,14 @@
 const jwt = require("jsonwebtoken");
 const env = require("../config/env");
 const User = require("../models/userModel");
-const { isBlogReady } = require("../services/mongoService");
+const { ensureBlogReady } = require("../services/mongoService");
 
 async function requireAuth(req, res, next) {
-  if (!isBlogReady()) {
+  try {
+    if (!(await ensureBlogReady())) {
+      return res.status(503).json({ error: "Blog system unavailable" });
+    }
+  } catch {
     return res.status(503).json({ error: "Blog system unavailable" });
   }
   const authHeader = req.headers.authorization || "";

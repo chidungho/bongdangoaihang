@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const env = require("../config/env");
 const User = require("../models/userModel");
-const { isBlogReady } = require("../services/mongoService");
+const { ensureBlogReady } = require("../services/mongoService");
 
 function hashToken(value) {
   return crypto.createHash("sha256").update(String(value || "")).digest("hex");
@@ -23,10 +23,18 @@ function issueTokens(user) {
   return { accessToken, refreshToken };
 }
 
-async function login(req, res) {
-  if (!isBlogReady()) {
-    return res.status(503).json({ error: "Blog system unavailable" });
+async function ensureAuthStore(res, options) {
+  try {
+    if (await ensureBlogReady(options)) return true;
+  } catch {
+    // Return the stable public API error below.
   }
+  res.status(503).json({ error: "Blog system unavailable" });
+  return false;
+}
+
+async function login(req, res) {
+  if (!(await ensureAuthStore(res, { seedAdmin: true }))) return;
   const email = String(req.body?.email || "").trim().toLowerCase();
   const password = String(req.body?.password || "").trim();
   if (!email || !password) {
@@ -53,9 +61,7 @@ async function login(req, res) {
 }
 
 async function refresh(req, res) {
-  if (!isBlogReady()) {
-    return res.status(503).json({ error: "Blog system unavailable" });
-  }
+  if (!(await ensureAuthStore(res))) return;
   const refreshToken = String(req.body?.refreshToken || "").trim();
   if (!refreshToken) return res.status(400).json({ error: "Refresh token is required" });
   let payload;

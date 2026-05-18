@@ -1,22 +1,28 @@
-const { connectMongo, seedAdminAccount } = require("./services/mongoService");
+const { ensureBlogReady } = require("./services/mongoService");
 const { initializeMatchCache } = require("./services/matchService");
 
 let bootstrapPromise = null;
 
-async function bootstrapRuntime(matchOptions) {
+async function bootstrapRuntime(options = {}) {
   if (bootstrapPromise) return bootstrapPromise;
+  const {
+    connectDatabase = true,
+    seedAdmin = connectDatabase,
+    ...matchOptions
+  } = options || {};
 
   bootstrapPromise = (async () => {
-    try {
-      const connected = await connectMongo();
-      if (connected) {
-        await seedAdminAccount();
-        console.info("[BOOT] MongoDB connected");
-      } else {
-        console.warn("[BOOT] MONGODB_URI missing, blog module disabled");
+    if (connectDatabase) {
+      try {
+        const connected = await ensureBlogReady({ seedAdmin });
+        if (connected) {
+          console.info("[BOOT] MongoDB connected");
+        } else {
+          console.warn("[BOOT] MONGODB_URI missing, blog module disabled");
+        }
+      } catch (error) {
+        console.warn("[BOOT] MongoDB connection failed:", error.message);
       }
-    } catch (error) {
-      console.warn("[BOOT] MongoDB connection failed:", error.message);
     }
 
     await initializeMatchCache(matchOptions);
